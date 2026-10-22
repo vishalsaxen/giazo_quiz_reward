@@ -445,6 +445,7 @@ td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
           <h2>Results</h2><span class="small sub" style="margin:0" id="lbCount"></span>
         </header>
         <div class="datebar"><label for="date3">Quiz date</label><input type="date" id="date3"></div>
+        <p class="small sub" style="margin:0" id="lbNote"></p>
         <div id="winner3"></div>
         <ol class="lb" id="lb"></ol>
         <p class="small sub" style="margin:0">Names, phone numbers and emails are hidden for everyone. Emails show as x*****@giazonest.com.</p>
@@ -481,17 +482,20 @@ td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
   const ROLE_NOTE = {
     admin: 'Previewing as Super Admin: sees all 3 tabs and every player entry.',
     seller: 'Previewing as Seller: sets up Tab 1 and can check scores for any date in Tab 2.',
-    buyer: 'Previewing as Buyer: fills in Player Details (Tab 2) and plays the Quiz (Tab 3).',
+    buyer: 'Previewing as Buyer: fills in Player Details (Tab 2), then stays on the Quiz (Tab 3) until the next day.',
   };
 
   // ---------- tabs ----------
   // Tabs open in order: Tab 2 after the seller saves Tab 1, Tab 3 after a player starts in Tab 2.
-  const tabOpen = i => i === 1 || (i === 2 && state.published) || (i === 3 && !!(play.me || play.pastMe));
+  // A buyer who has entered today's quiz stays on Tab 3 until the date changes.
+  const buyerLocked = () => state.role === 'buyer' && !!play.me;
+  const tabOpen = i => i === 3 ? !!(play.me || play.pastMe) : buyerLocked() ? false : i === 1 || (i === 2 && state.published);
   const LOCK_TIP = { 2: 'Opens after Seller\'s Details are saved', 3: 'Opens after you start the quiz in Player Details' };
+  const lockTip = i => buyerLocked() && i !== 3 ? 'You have entered today\'s quiz. A new quiz opens after 00:00:00.' : LOCK_TIP[i];
   function refreshTabs() {
     [2, 3].forEach(i => {
       const b = $('#tab-' + i), open = tabOpen(i);
-      b.disabled = !open; b.title = open ? '' : LOCK_TIP[i];
+      b.disabled = !open; b.title = open ? '' : lockTip(i);
       b.querySelector('.lock') || b.insertAdjacentHTML('beforeend', '<span class="lock" aria-hidden="true">🔒</span>');
       b.querySelector('.lock').hidden = open;
     });
@@ -864,6 +868,7 @@ td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
     const lb = h ? rankList(h.entries) : [];
     const mine = e => play.pastMe && e.email === play.pastMe.email && day === play.pastMe.date;
     $('#lbCount').textContent = h ? `${lb.length} finished · ${h.entries.length} entered` : '';
+    $('#lbNote').textContent = `Showing ${day === dayStr(-1) ? 'yesterday\'s' : 'the'} results for ${niceDate(day)}. Results for today's quiz (${niceDate(today())}) appear here after 00:00:00.`;
     $('#winner3').innerHTML = lb.length ? `<div class="winner"><span class="tag">Winner · ${niceDate(day)}</span><b>*****${mine(lb[0]) ? ' (you)' : ''} · ${maskEmail(lb[0].email)}</b><span class="small sub" style="margin:0">${lb[0].score} pts in ${mmss(lb[0].secs)}. Wins ${esc(h.prod)} at ${h.pct}% off from ${esc(h.shop)}.</span></div>` : '';
     $('#lb').innerHTML = lb.length ? lb.map((e, i) => `<li class="${i === 0 ? 'first' : ''} ${mine(e) ? 'me' : ''}">
       <span class="rank">${i + 1}</span>

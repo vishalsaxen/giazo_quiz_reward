@@ -12,3 +12,5 @@ At 00:00:00 the day's quiz ends, entries are cleared automatically, and a new qu
 
 ## Run
 Open `index.html` in a browser, or enable GitHub Pages on the `main` branch.
+
+Live: https://vishalsaxen.github.io/giazo_quiz_reward/

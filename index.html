@@ -51,7 +51,19 @@ header.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .tab[aria-selected="true"]{background:var(--brand);color:var(--brand-ink)}
 .tab[aria-selected="true"] i{background:var(--brand-ink);color:var(--brand)}
 .tab.done i{background:var(--ok);color:#fff}
-.tab:disabled{cursor:not-allowed;opacity:.6}
+.tab:disabled{cursor:not-allowed;opacity:.5}
+.tab .lock{margin-left:auto;font-size:.8rem}
+dialog.confirm{border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink);padding:22px;max-width:min(380px,calc(100vw - 32px));box-shadow:0 20px 50px rgba(0,0,0,.25)}
+dialog.confirm::backdrop{background:rgba(35,43,51,.45)}
+dialog.confirm h2{margin:0 0 6px}
+dialog.confirm p{margin:0 0 18px;color:var(--muted)}
+dialog.confirm .actions{justify-content:flex-end}
+.datebar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.datebar label{font-size:.85rem;font-weight:600;color:var(--muted)}
+.datebar input{width:auto;padding:7px 10px}
+.winner{border:2px solid var(--brand);border-radius:12px;padding:12px 14px;background:var(--accent-soft);display:grid;gap:2px}
+.winner .tag{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--brand)}
+.wait-card{border:1px dashed var(--line);border-radius:12px;padding:18px;text-align:center;display:grid;gap:4px}
 @media (max-width:560px){.tab small{display:none}.tab{justify-content:center;flex-direction:column;gap:4px;text-align:center;font-size:.8rem}}
 
 /* Panels */
@@ -350,7 +362,7 @@ td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
         <div class="clock"><b>Today's quiz ends at 00:00:00</b><span class="t" id="clock2">--:--:--</span><span class="small sub" style="margin:0">left</span></div>
         <ul>
           <li>The quiz ends at 00:00:00 tonight and a new quiz starts.</li>
-          <li>All of today's player entries are removed automatically at 00:00:00.</li>
+          <li>At 00:00:00 today's entries close and are cleared from this form. The results are then shown to everyone in the Quiz tab.</li>
           <li>Fresh entries are accepted on the new date. You can play once per day.</li>
           <li>5 questions in 5 minutes. The best score wins; if scores tie, the faster time wins.</li>
         </ul>
@@ -385,12 +397,13 @@ td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
       <div class="actions"><button class="btn" type="submit" id="plStart">Click here to start quiz</button></div>
     </form>
 
-    <aside class="panel" id="entriesPanel" aria-label="Today's entries">
+    <aside class="panel" id="entriesPanel" aria-label="Entries and scores">
       <header style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline">
-        <h2>Today's entries</h2><span class="private">Private: seller and admin only</span>
+        <h2>Entries and scores</h2><span class="private">Private: seller and admin only</span>
       </header>
+      <div class="datebar"><label for="date2">Date</label><input type="date" id="date2"><button class="btn ghost" type="button" id="today2">Today</button></div>
       <div class="tbl"><table>
-        <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Status</th><th class="num">Score</th><th class="num">Time</th></tr></thead>
+        <thead><tr><th class="num">#</th><th>Name</th><th>Email</th><th>Phone</th><th>Status</th><th class="num">Score</th><th class="num">Time</th></tr></thead>
         <tbody id="entries"></tbody>
       </table></div>
       <p class="small sub" id="entriesNote" style="margin:0"></p>
@@ -409,12 +422,6 @@ td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
 
     <div class="play">
       <div class="panel" id="gameArea">
-        <div id="gate" class="qcard" hidden>
-          <span class="tag">Want to play?</span>
-          <h3>Fill in Player Details first</h3>
-          <p class="sub" style="margin:0">Enter your name, email and phone in Tab 2, then start the quiz.</p>
-          <button class="btn" type="button" data-tab="2" style="justify-self:start">Go to Player Details</button>
-        </div>
         <div id="game" hidden style="display:grid;gap:14px">
           <div class="hud">
             <div class="stat"><b id="timer">5:00</b><span>Time left</span></div>
@@ -433,14 +440,29 @@ td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
 
       <div class="panel">
         <header style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline">
-          <h2>Today's leaderboard</h2><span class="small sub" style="margin:0" id="lbCount"></span>
+          <h2>Results</h2><span class="small sub" style="margin:0" id="lbCount"></span>
         </header>
+        <div class="datebar"><label for="date3">Quiz date</label><input type="date" id="date3"></div>
+        <div id="winner3"></div>
         <ol class="lb" id="lb"></ol>
         <p class="small sub" style="margin:0">Names, phone numbers and emails are hidden for everyone. Emails show as x*****@giazonest.com.</p>
       </div>
     </div>
   </section>
+
+  <section id="panel-0" class="panel" hidden>
+    <h1>Today's quiz isn't open yet</h1>
+    <p class="sub" style="margin:0">The seller hasn't published today's prize. Check back soon.</p>
+  </section>
 </div>
+
+<dialog class="confirm" id="confirmDlg" aria-labelledby="confirmTitle">
+  <form method="dialog">
+    <h2 id="confirmTitle">Are you sure you want to continue?</h2>
+    <p id="confirmText"></p>
+    <div class="actions"><button class="btn ghost" value="no" type="submit">Cancel</button><button class="btn" value="yes" type="submit" autofocus>Yes, continue</button></div>
+  </form>
+</dialog>
 
 <script>
 (() => {
@@ -452,26 +474,45 @@ td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
     desc: 'Handmade from neem wood with non-toxic colours. Helps toddlers learn colours, sizes and balance. Ages 1 to 5.',
     mrp: '1499', pct: 20, img: SAMPLE_IMG, imgName: 'rainbow-stacker.jpg (example)',
   };
-  const state = { img: null, imgName: '', saved: false, role: 'admin' };
+  const state = { img: null, imgName: '', saved: false, published: false, role: 'admin' };
   const TABS_FOR = { admin: [1, 2, 3], seller: [1, 2, 3], buyer: [2, 3] };
   const ROLE_NOTE = {
     admin: 'Previewing as Super Admin: sees all 3 tabs and every player entry.',
-    seller: 'Previewing as Seller: sets up Tab 1 and sees today\'s entries in Tab 2.',
+    seller: 'Previewing as Seller: sets up Tab 1 and can check scores for any date in Tab 2.',
     buyer: 'Previewing as Buyer: fills in Player Details (Tab 2) and plays the Quiz (Tab 3).',
   };
 
   // ---------- tabs ----------
+  // Tabs open in order: Tab 2 after the seller saves Tab 1, Tab 3 after a player starts in Tab 2.
+  const tabOpen = i => i === 1 || (i === 2 && state.published) || (i === 3 && !!(play.me || play.pastMe));
+  const LOCK_TIP = { 2: 'Opens after Seller\'s Details are saved', 3: 'Opens after you start the quiz in Player Details' };
+  function refreshTabs() {
+    [2, 3].forEach(i => {
+      const b = $('#tab-' + i), open = tabOpen(i);
+      b.disabled = !open; b.title = open ? '' : LOCK_TIP[i];
+      b.querySelector('.lock') || b.insertAdjacentHTML('beforeend', '<span class="lock" aria-hidden="true">🔒</span>');
+      b.querySelector('.lock').hidden = open;
+    });
+  }
   function showTab(n) {
-    const allowed = TABS_FOR[state.role];
-    if (!allowed.includes(n)) n = allowed[0];
+    const allowed = TABS_FOR[state.role].filter(tabOpen);
+    if (!allowed.includes(n)) n = allowed.length ? allowed[allowed.length - 1] : 0;
     state.tab = n;
+    refreshTabs();
     if (n === 2) renderTab2();
     if (n === 3) renderTab3();
-    [1, 2, 3].forEach(i => {
-      $('#tab-' + i).setAttribute('aria-selected', String(i === n));
+    [0, 1, 2, 3].forEach(i => {
+      if (i) $('#tab-' + i).setAttribute('aria-selected', String(i === n));
       $('#panel-' + i).hidden = i !== n;
     });
   }
+  const askConfirm = text => new Promise(res => {
+    const d = $('#confirmDlg');
+    $('#confirmText').textContent = text;
+    d.returnValue = '';
+    d.addEventListener('close', () => res(d.returnValue === 'yes'), { once: true });
+    d.showModal();
+  });
   [1, 2, 3].forEach(i => $('#tab-' + i).addEventListener('click', () => showTab(i)));
   function setRole(r) {
     state.role = r;
@@ -479,7 +520,7 @@ td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
     [1, 2, 3].forEach(i => { $('#tab-' + i).hidden = !TABS_FOR[r].includes(i); });
     $('.tabs').classList.toggle('two', TABS_FOR[r].length === 2);
     $('#roleNote').textContent = ROLE_NOTE[r];
-    showTab(TABS_FOR[r].includes(state.tab) ? state.tab : TABS_FOR[r][0]);
+    showTab(TABS_FOR[r].includes(state.tab) ? state.tab : TABS_FOR[r][TABS_FOR[r].length - 1]);
   }
   document.querySelectorAll('.roles button').forEach(b => b.addEventListener('click', () => setRole(b.dataset.role)));
   document.addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) showTab(+b.dataset.tab); });
@@ -604,7 +645,7 @@ td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
   }
 
   // ---------- save ----------
-  $('#sellerForm').addEventListener('submit', e => {
+  $('#sellerForm').addEventListener('submit', async e => {
     e.preventDefault();
     Object.keys(rules).forEach(k => touched.add(k));
     const bad = check(true);
@@ -614,11 +655,12 @@ td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
       $(fieldFor[bad]).focus();
       return;
     }
-    state.saved = true;
+    if (!await askConfirm(`Buyers will see "${$('#pname').value.trim()}" from ${$('#shop').value.trim()} as today's prize, and Player Details will open.`)) return;
+    state.saved = state.published = true;
     $('#formMsg').className = 'msg ok';
     $('#formMsg').textContent = `Saved. Buyers will see "${$('#pname').value.trim()}" from ${$('#shop').value.trim()} as the winner's prize.`;
     $('#tab-1').classList.add('done');
-    setTimeout(() => showTab(2), 700);
+    showTab(2);
   });
   $('#resetBtn').addEventListener('click', () => {
     ['#shop', '#phone', '#pname', '#desc', '#mrp', '#winPrice', '#pct'].forEach(s => $(s).value = '');
@@ -628,7 +670,9 @@ td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
 
   // ======================= Tab 2 + Tab 3 =======================
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+  const dayStr = (off = 0) => { const d = new Date(); d.setDate(d.getDate() + off); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+  const today = () => dayStr(0);
+  const niceDate = s => new Date(s + 'T00:00:00').toLocaleDateString(undefined, { dateStyle: 'medium' });
   const mmss = s => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
   // Public view: name and phone fully hidden, email shown as first letter + ***** on giazonest.com for everyone.
   const maskEmail = e => (e[0] || 'x').toLowerCase() + '*****@giazonest.com';
@@ -656,8 +700,27 @@ td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
       { name: 'Tanvi Rao', email: 'tanvi.rao@yahoo.com', phone: '+971 50 123 4567', date: today(), status: 'done', score: 60, secs: 132 },
       { name: 'Arjun Bose', email: 'arjun.bose@gmail.com', phone: '+91 90040 77889', date: today(), status: 'playing', score: null, secs: null },
     ],
-    me: null, run: null, day: today(),
+    me: null, pastMe: null, run: null, day: today(),
+    // Closed days (example data). At 00:00:00 today's entries move here and become public results.
+    history: {
+      [dayStr(-1)]: { shop: 'Desai Toys', prod: 'Wooden Rainbow Stacker (7 pieces)', pct: 20, entries: [
+        { name: 'Kavya Iyer', email: 'kavya.iyer@gmail.com', phone: '+91 98450 12345', status: 'done', score: 100, secs: 164 },
+        { name: 'Rohit Mehra', email: 'rohit.m@gmail.com', phone: '+91 98111 22334', status: 'done', score: 80, secs: 140 },
+        { name: 'Fatima Shaikh', email: 'fatima.s@outlook.com', phone: '+971 55 765 4321', status: 'done', score: 80, secs: 201 },
+        { name: 'Dev Malhotra', email: 'dev.malhotra@yahoo.com', phone: '+91 97000 55667', status: 'done', score: 40, secs: 297 },
+      ] },
+      [dayStr(-2)]: { shop: 'Desai Toys', prod: 'Wooden Shape Sorter Box', pct: 25, entries: [
+        { name: 'Ishaan Gupta', email: 'ishaan.g@gmail.com', phone: '+91 99880 11002', status: 'done', score: 80, secs: 122 },
+        { name: 'Meera Nair', email: 'meera.nair@gmail.com', phone: '+91 94470 33221', status: 'done', score: 60, secs: 175 },
+        { name: 'Aman Verma', email: 'aman.verma@hotmail.com', phone: '+91 98990 77665', status: 'playing', score: null, secs: null },
+      ] },
+      [dayStr(-3)]: { shop: 'Desai Toys', prod: 'Wooden Rainbow Stacker (7 pieces)', pct: 15, entries: [
+        { name: 'Pooja Kulkarni', email: 'pooja.k@gmail.com', phone: '+91 90280 44556', status: 'done', score: 100, secs: 98 },
+        { name: 'Nikhil Das', email: 'nikhil.das@gmail.com', phone: '+91 98300 99887', status: 'done', score: 100, secs: 131 },
+      ] },
+    },
   };
+  const rankList = list => list.filter(e => e.status === 'done').sort((a, b) => b.score - a.score || a.secs - b.secs);
 
   function prizeMini() {
     const name = $('#pname').value.trim() || 'Prize product', shop = $('#shop').value.trim() || 'Seller';
@@ -673,12 +736,16 @@ td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
     return [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60].map(x => String(x).padStart(2, '0')).join(':');
   }
   function dailyReset(note) {
+    // Close yesterday: keep its entries as results, then clear the form's list for the new date.
+    const old = play.entries.filter(e => e.date !== today());
+    if (old.length) play.history[play.day] = { shop: $('#shop').value.trim(), prod: $('#pname').value.trim(), pct: round2(num($('#pct').value)), entries: old };
     play.entries = play.entries.filter(e => e.date === today());
-    if (play.me && !play.entries.includes(play.me)) { stopRun(); play.me = null; }
+    if (play.me && !play.entries.includes(play.me)) { stopRun(); if (play.me.status === 'playing') play.me.status = 'unfinished'; play.pastMe = play.me; play.me = null; }
     play.day = today();
+    $('#date2').max = today(); $('#date2').value = today();
+    $('#date3').max = dayStr(-1); $('#date3').value = dayStr(-1);
     if (note) { $('#plMsg').className = 'msg ok'; $('#plMsg').textContent = note; }
-    if (state.tab === 2) renderTab2();
-    if (state.tab === 3) renderTab3();
+    showTab(state.tab);
   }
   setInterval(() => {
     const c = untilMidnight();
@@ -724,15 +791,17 @@ td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
     const priv = state.role !== 'buyer';
     $('#entriesPanel').hidden = !priv;
     $('#panel-2').classList.toggle('grid2', priv);
-    const rows = play.entries;
-    $('#entries').innerHTML = rows.length ? rows.map(e => `<tr><td>${esc(e.name)}</td><td>${esc(e.email)}</td><td style="white-space:nowrap">${esc(e.phone)}</td>
-      <td>${e.status === 'done' ? '<span class="pill done">Finished</span>' : '<span class="pill wait">Playing</span>'}</td>
-      <td class="num">${e.score ?? '–'}</td><td class="num">${e.secs != null ? mmss(e.secs) : '–'}</td></tr>`).join('')
-      : '<tr><td colspan="6" class="small">No entries yet today.</td></tr>';
-    $('#entriesNote').textContent = `${rows.length} entr${rows.length === 1 ? 'y' : 'ies'} for ${new Date().toLocaleDateString(undefined, { dateStyle: 'medium' })}. Removed automatically at 00:00:00.`;
+    const day = $('#date2').value || today(), isToday = day === today();
+    const all = isToday ? play.entries : (play.history[day] || {}).entries || [];
+    const done = rankList(all), rows = [...done, ...all.filter(e => e.status !== 'done')];
+    $('#entries').innerHTML = rows.length ? rows.map(e => { const r = done.indexOf(e) + 1; return `<tr><td class="num">${r || '–'}</td><td style="white-space:nowrap">${esc(e.name)}${r === 1 ? ` <span class="pill done">${isToday ? 'Leading' : 'Winner'}</span>` : ''}</td><td>${esc(e.email)}</td><td style="white-space:nowrap">${esc(e.phone)}</td>
+      <td>${e.status === 'done' ? '<span class="pill done">Finished</span>' : `<span class="pill wait">${isToday ? 'Playing' : 'Didn\'t finish'}</span>`}</td>
+      <td class="num">${e.score ?? '–'}</td><td class="num">${e.secs != null ? mmss(e.secs) : '–'}</td></tr>`; }).join('')
+      : `<tr><td colspan="7" class="small">${isToday ? 'No entries yet today.' : 'No quiz was played on this date.'}</td></tr>`;
+    $('#entriesNote').textContent = `${rows.length} entr${rows.length === 1 ? 'y' : 'ies'} on ${niceDate(day)}.` + (isToday ? ' Scores update live. The form clears at 00:00:00 and results go public in the Quiz tab.' : '');
   }
 
-  $('#playerForm').addEventListener('submit', e => {
+  $('#playerForm').addEventListener('submit', async e => {
     e.preventDefault();
     const bad = plCheck(true);
     if (bad) { $('#plMsg').className = 'msg bad'; $('#plMsg').textContent = 'Fix the highlighted fields to start.'; $(plField[bad]).focus(); return; }
@@ -745,6 +814,7 @@ td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
       $('#plMsg').textContent = `You've already played today (${prev.score} points). Come back after 00:00:00 for the new quiz.`;
       return;
     }
+    if (!await askConfirm('Your 5-minute quiz opens in the Quiz tab. You can play once today.')) return;
     play.me = prev || { name: $('#plName').value.trim().replace(/\s+/g, ' '), email, phone, date: today(), status: 'playing', score: null, secs: null };
     if (!prev) play.entries.push(play.me);
     $('#plMsg').textContent = '';
@@ -779,25 +849,26 @@ td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
     requestAnimationFrame(() => { $('#wheel').style.transition = ''; });
     drawWheel();
   }
-  function ranked() {
-    return play.entries.filter(e => e.status === 'done').sort((a, b) => b.score - a.score || a.secs - b.secs);
-  }
+  // Public results: only closed days (yesterday and earlier). Today's ranking stays hidden until 00:00:00.
   function renderLeaderboard() {
-    const lb = ranked();
-    $('#lbCount').textContent = `${lb.length} finished · ${play.entries.length} entered`;
-    $('#lb').innerHTML = lb.length ? lb.map((e, i) => `<li class="${i === 0 ? 'first' : ''} ${e === play.me ? 'me' : ''}">
+    const day = $('#date3').value || dayStr(-1), h = play.history[day];
+    const lb = h ? rankList(h.entries) : [];
+    const mine = e => play.pastMe && e.email === play.pastMe.email && day === play.pastMe.date;
+    $('#lbCount').textContent = h ? `${lb.length} finished · ${h.entries.length} entered` : '';
+    $('#winner3').innerHTML = lb.length ? `<div class="winner"><span class="tag">Winner · ${niceDate(day)}</span><b>*****${mine(lb[0]) ? ' (you)' : ''} · ${maskEmail(lb[0].email)}</b><span class="small sub" style="margin:0">${lb[0].score} pts in ${mmss(lb[0].secs)}. Wins ${esc(h.prod)} at ${h.pct}% off from ${esc(h.shop)}.</span></div>` : '';
+    $('#lb').innerHTML = lb.length ? lb.map((e, i) => `<li class="${i === 0 ? 'first' : ''} ${mine(e) ? 'me' : ''}">
       <span class="rank">${i + 1}</span>
-      <span class="who"><b>*****${e === play.me ? ' (you)' : ''}</b><span>${maskEmail(e.email)} · Phone *****</span></span>
+      <span class="who"><b>*****${mine(e) ? ' (you)' : ''}</b><span>${maskEmail(e.email)} · Phone *****</span></span>
       <span class="sc"><b>${e.score} pts</b>${mmss(e.secs)}</span></li>`).join('')
-      : '<li><span></span><span class="who"><span>No one has finished yet today. Be the first.</span></span><span></span></li>';
+      : `<li><span></span><span class="who"><span>No results for ${niceDate(day)}.</span></span><span></span></li>`;
   }
   function renderTab3() {
     $('#mini3').innerHTML = prizeMini();
     const me = play.me;
-    $('#gate').hidden = !!me;
     const playing = me && me.status === 'playing';
     $('#game').hidden = !playing;
-    $('#result').hidden = !(me && me.status === 'done');
+    $('#result').hidden = !!playing;
+    if (!me && play.pastMe) $('#result').innerHTML = `<div class="wait-card"><b>The quiz from ${niceDate(play.pastMe.date)} has ended</b><span class="small sub" style="margin:0">The results are below. To play today's quiz, enter your details again in Player Details.</span></div>`;
     if (playing && !play.run) newRun();
     if (!playing) $('#qArea').innerHTML = '';
     renderLeaderboard();
@@ -853,13 +924,9 @@ td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
     const used = QUIZ_SECONDS - Math.max(0, r.left);
     me.status = 'done'; me.score = r.score; me.secs = used;
     const right = r.log.filter(l => l.ok).length;
-    const lb = ranked(), pos = lb.indexOf(me) + 1, leader = lb[0];
-    const m = num($('#mrp').value), w = num($('#winPrice').value), p = num($('#pct').value);
-    const shop = $('#shop').value.trim() || 'the seller', prod = $('#pname').value.trim() || 'the prize';
-    $('#result').innerHTML = `<div><h2>${why}: ${r.score} points</h2><p class="sub">${right} of 5 correct in ${mmss(used)}. You're number ${pos} of ${lb.length} today.</p></div>` +
-      (leader === me
-        ? `<div class="coupon"><span class="tag">You're in the lead</span><b>${round2(p)}% off</b><span>${esc(prod)} from ${esc(shop)}${!isNaN(w) ? ` for ${fmt(w)} instead of ${fmt(m)}` : ''}.</span><span class="small sub" style="margin:0">If you're still on top at 00:00:00, you win. The seller contacts you on the phone number you entered.</span></div>`
-        : `<p class="msg" style="margin:0;background:var(--accent-soft)">The leader has ${leader.score} points in ${mmss(leader.secs)}. The top player at 00:00:00 wins ${esc(prod)} at ${round2(p)}% off.</p>`) +
+    const p = num($('#pct').value), prod = $('#pname').value.trim() || 'the prize';
+    $('#result').innerHTML = `<div><h2>${why}: ${r.score} points</h2><p class="sub">${right} of 5 correct in ${mmss(used)}. Your score is saved.</p></div>` +
+      `<div class="wait-card"><b>Results are announced after 00:00:00</b><span class="small sub" style="margin:0">Come back to this tab after midnight to see the winner of ${esc(prod)} at ${round2(p)}% off. The seller contacts the winner on the phone number they entered.</span></div>` +
       `<div style="display:grid;gap:8px">${r.log.map((l, n) => `<div class="qcard"><span class="tag">Q${n + 1} · ${l.ok ? 'Correct' : 'Wrong'}</span><div>${esc(l.q.q)}</div><span class="small sub" style="margin:0">Answer: ${esc(l.q.o[l.q.a])}</span></div>`).join('') || '<p class="small sub">No questions answered before time ran out.</p>'}</div>`;
     play.run = null;
     renderTab3();
@@ -870,6 +937,11 @@ td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
   $('#pname').value = SAMPLE.pname; $('#desc').value = SAMPLE.desc; $('#mrp').value = SAMPLE.mrp;
   $('#pct').value = SAMPLE.pct; $('#pctRange').value = SAMPLE.pct; fromPct();
   setImage(SAMPLE.img, SAMPLE.imgName); touched.clear(); update();
+  $('#date2').max = today(); $('#date2').value = today();
+  $('#date3').max = dayStr(-1); $('#date3').value = dayStr(-1);
+  $('#date2').addEventListener('change', renderTab2);
+  $('#today2').addEventListener('click', () => { $('#date2').value = today(); renderTab2(); });
+  $('#date3').addEventListener('change', renderLeaderboard);
   setRole('admin');
 })();
 </script>

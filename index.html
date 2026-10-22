@@ -691,8 +691,11 @@ td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
     { t: 'Vitamins', q: 'Rickets in children is caused by a lack of which vitamin?', o: ['Vitamin A', 'Vitamin B1', 'Vitamin D', 'Vitamin K'], a: 2, e: 'Vitamin D helps the body use calcium for bones.' },
     { t: 'Minerals', q: 'Goitre is caused by the deficiency of:', o: ['Iron', 'Iodine', 'Calcium', 'Phosphorus'], a: 1, e: 'Iodine is needed by the thyroid gland.' },
     { t: 'Fats', q: 'Rubbing food on paper leaves an oily patch. The food contains:', o: ['Fat', 'Starch', 'Protein', 'Fibre'], a: 0, e: 'Fats leave a translucent oily patch on paper.' },
+    { t: 'Water', q: 'About how much of our body weight is water?', o: ['About 10%', 'About 30%', 'About two-thirds', 'Almost all of it'], a: 2, e: 'Roughly two-thirds of the body is water.' },
   ];
-  const WCOL = ['#F2591B', '#1C4FC4', '#232B33', '#4F8A2A', '#8A5A2B', '#7A5BB5', '#C7410E', '#1E7F4F'];
+  // Like NXTROI's wheel, each segment carries one letter of the brand name.
+  const WHEEL_WORD = 'GIAZONEST';
+  const WCOL = ['#F2591B', '#1C4FC4', '#232B33', '#4F8A2A', '#8A5A2B', '#7A5BB5', '#C7410E', '#1E7F4F', '#B8336A'];
 
   // Today's entries (example rows). Each has a date; anything not from today is removed at 00:00:00.
   const play = {
@@ -833,9 +836,13 @@ td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
       x.beginPath(); x.moveTo(cx, cx); x.arc(cx, cx, R, a0, a0 + seg); x.closePath();
       x.fillStyle = done ? css('--line') : WCOL[i]; x.fill();
       x.lineWidth = 6; x.strokeStyle = css('--surface'); x.stroke();
-      x.save(); x.translate(cx, cx); x.rotate(a0 + seg / 2); x.textAlign = 'right';
+      // Letter stands upright along the segment's centre line, reading outward from the hub.
+      x.save(); x.translate(cx, cx); x.rotate(a0 + seg / 2); x.translate(R - 95, 0); x.rotate(Math.PI / 2);
+      x.textAlign = 'center'; x.textBaseline = 'middle';
       x.fillStyle = done ? css('--muted') : '#ffffff';
-      x.font = '700 34px Manrope, sans-serif'; x.fillText(done ? '✓ done' : QBANK[i].t, R - 34, 10); x.restore();
+      x.font = '800 92px Sora, sans-serif'; x.fillText(WHEEL_WORD[i], 0, 0);
+      if (done) { x.font = '700 30px Manrope, sans-serif'; x.fillText('✓', 0, 70); }
+      x.restore();
     }
     x.beginPath(); x.arc(cx, cx, R, 0, 2 * Math.PI); x.lineWidth = 10; x.strokeStyle = css('--ink'); x.stroke();
   }
@@ -902,7 +909,7 @@ td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
     const r = play.run; if (!r || r.ended) return;
     const q = QBANK[i]; r.asked++;
     $('#qn').textContent = `${r.asked}/5`;
-    $('#qArea').innerHTML = `<div class="qcard"><span class="tag">Question ${r.asked} of 5 · ${esc(q.t)} · +${PER_Q} pts</span><h3>${esc(q.q)}</h3>
+    $('#qArea').innerHTML = `<div class="qcard"><span class="tag">Letter ${WHEEL_WORD[i]} · Question ${r.asked} of 5 · ${esc(q.t)} · +${PER_Q} pts</span><h3>${esc(q.q)}</h3>
       <div class="opts">${q.o.map((o, k) => `<button type="button" class="opt" data-k="${k}"><b>${'ABCD'[k]}</b>${esc(o)}</button>`).join('')}</div><div id="ex"></div></div>`;
     $('#qArea').querySelectorAll('.opt').forEach(b => b.addEventListener('click', () => answer(i, +b.dataset.k)));
   }

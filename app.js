@@ -84,7 +84,7 @@
       return '';
     },
     pname: () => { const v = $('#pname').value.trim(); return !v ? 'Enter the product name.' : v.length < 3 ? 'Product name must be at least 3 characters.' : ''; },
-    img: () => state.img ? '' : 'Add a product image.',
+    img: () => '', // optional: the photo stays in the console; the player link doesn't carry it
     desc: () => { const v = $('#desc').value.trim(); return !v ? 'Describe the product.' : v.length < 20 ? 'Write at least 20 characters so buyers know what they can win.' : v.length > 500 ? 'Keep the description to 500 characters.' : ''; },
     mrp: () => { if (isCoupon()) return ''; const n = num($('#mrp').value); return !$('#mrp').value.trim() ? 'Enter the MRP.' : isNaN(n) || n <= 0 ? 'MRP must be a number above 0.' : n > 1000000 ? 'MRP must be ₹10,00,000 or less.' : ''; },
     win: () => {
@@ -234,20 +234,6 @@
 
 
   // ---------- player.html link ----------
-  // The prize travels inside the link (#o=...), so player.html needs no server. The image is shrunk to keep the link short.
-  function shrink(src) {
-    return new Promise(res => {
-      const im = new Image();
-      im.onload = () => {
-        const k = Math.min(1, 360 / Math.max(im.width, im.height)), c = document.createElement('canvas');
-        c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
-        const x = c.getContext('2d'); x.fillStyle = '#ffffff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0, c.width, c.height);
-        res(c.toDataURL('image/jpeg', 0.72));
-      };
-      im.onerror = () => res(null);
-      im.src = src;
-    });
-  }
   // Short quiz code: first 3 letters of the shop name, last 4 digits of the seller's mobile, and the date as DDMMYY (e.g. DES_3210_231026).
   const quizCode = () => {
     const shop = ($('#shop').value.normalize('NFKD').replace(/[^A-Za-z]/g, '').slice(0, 3) || 'GZN').toUpperCase().padEnd(3, 'X');
@@ -255,9 +241,8 @@
     return `${shop}_${digits().slice(-4)}_${dd(d.getDate())}${dd(d.getMonth() + 1)}${String(d.getFullYear()).slice(-2)}`;
   };
   async function makePlayerLink() {
-    const o = readForm();
-    o.img = state.img ? await shrink(state.img) : null;
-    const url = new URL('player.html', location.href).href.split('#')[0] + '#o=' + packOffer(o);
+    // Short link: <site>/DES_3210_231026#<packed prize details>. No photo, so it stays short; 404.html routes it to player.html.
+    const url = new URL('./', location.href).href.split('#')[0] + quizCode() + '#' + await packShort(readForm());
     $('#shareUrl').value = url; $('#openLink').href = url;
     $('#shareBox').hidden = false;
     $('#shareBox').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -342,6 +327,21 @@
   // Today's prize: from the Seller's Details form in the console, or from the shared link on player.html.
   const packOffer = o => { const b = new TextEncoder().encode(JSON.stringify(o)); let s = ''; for (let i = 0; i < b.length; i += 8192) s += String.fromCharCode.apply(null, b.subarray(i, i + 8192)); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
   const unpackOffer = t => { const s = atob(t.replace(/-/g, '+').replace(/_/g, '/')); return JSON.parse(new TextDecoder().decode(Uint8Array.from(s, c => c.charCodeAt(0)))); };
+  // Short link payload: the prize details as a compact array, deflated when the browser supports it (prefix z), else plain (prefix j).
+  const b64u = b => { let s = ''; for (let i = 0; i < b.length; i += 8192) s += String.fromCharCode.apply(null, b.subarray(i, i + 8192)); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
+  const unb64u = t => Uint8Array.from(atob(t.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+  const pipe = async (bytes, stream) => new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(stream)).arrayBuffer());
+  async function packShort(o) {
+    const a = [o.shop, o.phone, o.pname, o.desc].concat(o.type === 'coupon' ? [1, o.coupon] : [0, o.mrp, o.win, o.pct]);
+    const raw = new TextEncoder().encode(JSON.stringify(a));
+    if (typeof CompressionStream === 'undefined') return 'j' + b64u(raw);
+    return 'z' + b64u(await pipe(raw, new CompressionStream('deflate-raw')));
+  }
+  async function unpackShort(t) {
+    const bytes = t[0] === 'z' ? await pipe(unb64u(t.slice(1)), new DecompressionStream('deflate-raw')) : unb64u(t.slice(1));
+    const [shop, phone, pname, desc, kind, x, y, z] = JSON.parse(new TextDecoder().decode(bytes));
+    return Object.assign({ shop, phone, pname, desc, img: null }, kind === 1 ? { type: 'coupon', coupon: x } : { type: 'price', mrp: x, win: y, pct: z });
+  }
   let linkOffer = null;
   const offer = () => PLAYER ? (linkOffer || {}) : readForm();
   // How the winner's prize reads: "at 20% off" (MRP / Winner pays) or "with a 10% discount coupon".
@@ -352,7 +352,7 @@
     const m = o.mrp, w = o.win, p = o.pct;
     const price = isCouponOffer(o) ? `Winner gets a <span class="w">${o.coupon}% discount coupon</span>`
       : !isNaN(m) && !isNaN(w) && w < m ? `Winner pays <span class="w">${fmt(w)}</span> <s>${fmt(m)}</s> (${round2(p)}% off)` : '';
-    return (o.img ? `<img src="${o.img}" alt="">` : '<span></span>') + `<div><span>Today's prize from ${esc(shop)}</span><b>${esc(name)}</b><span>${price}</span></div>`;
+    return `<img src="${o.img || 'logo.png'}" alt="">` + `<div><span>Today's prize from ${esc(shop)}</span><b>${esc(name)}</b><span>${price}</span></div>`;
   }
 
   // ---------- midnight countdown + automatic reset ----------
@@ -568,8 +568,12 @@
   $('#date2').addEventListener('change', renderTab2);
   $('#today2').addEventListener('click', () => { $('#date2').value = today(); renderTab2(); });
   $('#date3').addEventListener('change', renderLeaderboard);
-  if (PLAYER) {
-    try { const m = location.hash.match(/^#o=([A-Za-z0-9_-]+)/); linkOffer = m ? unpackOffer(m[1]) : null; } catch (_) { linkOffer = null; }
+  if (PLAYER) (async () => {
+    // New short links arrive as player.html#DES_3210_231026.z...; older long links as player.html#o=...
+    try {
+      const s = location.hash.match(/^#([A-Z]{3}_\d{4}_\d{6})\.([zj][A-Za-z0-9_-]+)$/), m = location.hash.match(/^#o=([A-Za-z0-9_-]+)/);
+      linkOffer = s ? await unpackShort(s[2]) : m ? unpackOffer(m[1]) : null;
+    } catch (_) { linkOffer = null; }
     if (linkOffer && !(linkOffer.shop && linkOffer.pname)) linkOffer = null;
     if (linkOffer) {
       state.published = true;
@@ -577,7 +581,7 @@
       document.title = `${linkOffer.shop} · Giazo Quiz Reward`;
     }
     setRole('buyer');
-  } else {
+  })(); else {
     initSellerForm();
     setRole('admin');
   }

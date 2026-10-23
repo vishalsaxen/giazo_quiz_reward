@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <title>Giazo Quiz Reward</title>
 <script>
-  // Short quiz links: /giazo_quiz_reward/DES_3210_231026 opens player.html for that quiz code.
+  // Short quiz links: /giazo_quiz_reward/DES_3210_231026#<prize details> opens player.html with that quiz.
   (function () {
     var parts = location.pathname.split('/').filter(Boolean), code = parts[parts.length - 1] || '';
     var base = '/' + (parts.length > 1 ? parts[0] + '/' : '');
-    if (/^[A-Z]{3}_\d{4}_\d{6}$/i.test(code)) location.replace(base + 'player.html?c=' + code.toUpperCase());
+    if (/^[A-Z]{3}_\d{4}_\d{6}$/i.test(code)) location.replace(base + 'player.html#' + code.toUpperCase() + (location.hash ? '.' + location.hash.slice(1) : ''));
   })();
 </script>
 </head>

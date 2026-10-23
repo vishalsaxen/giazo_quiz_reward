@@ -216,3 +216,5 @@ td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
 .share .linkrow{display:flex;gap:8px;flex-wrap:wrap}
 .share input{flex:1 1 220px;min-width:0;font:500 .85rem ui-monospace,Menlo,monospace;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
 .share a.btn{text-decoration:none;display:inline-flex;align-items:center}
+.login{display:grid;gap:12px}
+#entriesBody[hidden]{display:none}

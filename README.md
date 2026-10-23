@@ -22,6 +22,13 @@ The prize details travel inside the Player page link, so there is no server yet.
 ## Daily reset and results
 At 00:00:00 the day's quiz ends, the entry form clears, and a new quiz opens. The closed day's results then show to everyone in the Quiz tab, with a date picker for earlier days. Super Admin and Seller can see entries and scores for any date, including today, in Player Details.
 
+## Live entries (Firebase)
+With the web config in `firebase-config.js`, entries and scores go to the `giazo-quiz-reward` Firestore database, so they're shared across phones:
+- Players enter once per email and once per phone number per quiz per day, and their final score is saved.
+- Super Admin signs in on Player Details (Firebase email/password) to see today's players, who's still playing and their scores, refreshed every 15 seconds.
+- The Quiz tab's public results come from the database too, with masked emails only.
+Paste `firestore.rules` into Firebase › Firestore Database › Rules. Only the admin emails listed there can read names, emails and phones. With no `apiKey`, the app runs on example data.
+
 ## Run
 Open `index.html` in a browser, or enable GitHub Pages on the `main` branch. `app.js`, `app.css` and `questions.js` are shared by both pages.
 

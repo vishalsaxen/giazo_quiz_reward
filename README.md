@@ -2,10 +2,15 @@
 
 A just-for-fun daily quiz for GiaZoNest. A seller offers a product discount, players spin the wheel and answer 5 questions in 5 minutes, and the best score (then fastest time) wins.
 
-## Tabs
-1. **Seller's Details** (Super Admin, Seller): shop name, phone, product image and description, MRP and the winner's discount.
-2. **Player Details** (private entry): name, email and phone, then start the quiz. One play per email or phone per day.
-3. **Quiz** (public): Spin the Wheel, 5 questions in 5 minutes, and a leaderboard ranked by score then time. Names and phones show as `*****`; emails are masked to `x*****@giazonest.com`.
+## Pages
+- **index.html** (Super Admin, Seller): the console. Super Admin sees all 3 tabs and every player entry.
+  1. **Seller's Details**: shop name, phone, product image and description, MRP and the winner's discount. **Save and continue** creates the Player page link to share with buyers.
+  2. **Player Details** and 3. **Quiz**: a preview of the Player page, plus the private Entries and scores table.
+- **player.html** (Buyer): what the seller shares. Only Tab 2 and Tab 3, showing the seller's prize.
+  2. **Player Details**: name, email and phone, then start the quiz. One play per email or phone per day.
+  3. **Quiz**: Spin the Wheel, 5 questions in 5 minutes, and a leaderboard ranked by score then time. Names and phones show as `*****`; emails are masked to `x*****@giazonest.com`.
+
+The prize travels inside the Player page link (`player.html#o=...`), so there is no server yet. Opening `player.html` without that part shows "This quiz link isn't complete". Scores are kept in the browser that played, so a buyer's score does not reach the seller's console until the app has a backend.
 
 ## Flow
 - Tabs open in order: Player Details unlocks after the seller saves Seller's Details, and Quiz unlocks after a player starts. Both steps ask "Are you sure you want to continue?" first.
@@ -15,6 +20,6 @@ A just-for-fun daily quiz for GiaZoNest. A seller offers a product discount, pla
 At 00:00:00 the day's quiz ends, the entry form clears, and a new quiz opens. The closed day's results then show to everyone in the Quiz tab, with a date picker for earlier days. Super Admin and Seller can see entries and scores for any date, including today, in Player Details.
 
 ## Run
-Open `index.html` in a browser, or enable GitHub Pages on the `main` branch.
+Open `index.html` in a browser, or enable GitHub Pages on the `main` branch. `app.js` and `app.css` are shared by both pages.
 
 Live: https://vishalsaxen.github.io/giazo_quiz_reward/

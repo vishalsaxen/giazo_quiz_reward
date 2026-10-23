@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Giazo Quiz Reward · Play</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="app.css">
+
+</head>
+<body data-page="player">
+
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <img class="logo" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAAC6CAMAAADcbPJmAAAAwFBMVEUAAABcLRMqFAufVycDTLPonF/wdA/8y59hmxDdq+b3qpbfx/fz8/OHtxfTalZqTSPybZ2iaVO2keBpTVfsl1JmkdHspWn1giKTwyL3iCuoLU44dAotasI2b8SSbKiENSHd06XMN2RVNlIiYbzetZ/9xHpEecari2Kpy1acpFawlpx2U42RrNyjn2euzWj3jTOlcE2YwzZqmjCfeMu0q5/WsKtKe8mw4O6OtTWkyEmlcVDcjlGfYThZiM20oJSznZJ3DGV6AAAAQHRSTlMA/f79+v39/vz+/f4J+P39/vn+/FgoKdrwov79nWf+/hj+/qwd/lv0W1jx/hkqKGeeo6H+F2ArC6SXaZ+jSptfUekaJQAAIIVJREFUeNrVXQdb28oSlbSRjIUsWW5gg0toBtOTEAhp//9fvWlbZRPnJeQm+90LtiyZPTvtzOxIiaL/YhQ4oofo22r17YHeRf/kKIqH57t+FcdxElf9/l30jyI5+dYHCHbE8bd/EsddJTBAInEVo2Cq+vu/h8OFARBAtSoQECD5cPIPofheq5hBaCR61FGx+HcU7GKpCAFj6cPQ8klQJv8KkCKq0SBiUSxQqtgaPRnKP+K87kCvXDsngTi+K+k//wtIimeLQ2uWhlXRD0DyL8jkW63IQIwmGfNIajKaPvys/34g3wMcYiP4pqoSDST+Xvztdr70cOC8UbXYX4lAEFb0l4ukWCGO2KUlFNJJsWqyEOFeH/5qIMU319AFiQikWsYMpI9I47viw98cCBs40NpjMhUSCGkaqV78N0vk+7KBg6EopepUsXwQGAK5+HtxPORgIHEDhlJligNBEnHkU+7+WpF8by1V1cChFKFotQgJmHrFHCzp/61APjyw500S67UsjFYrRyB90iw2/oe/018tom+qSlwcoEOoVHne4pFmKjZkEj7+j9NF9P9rZrCIotqXB+IAGC0zEAiFEPl49V8C4aJI9PDhuhnSNW/XYokzF4YYicOC6/8MSBGdfFvWdb+u83yFMnDwRbmkUYlVryptvQAkqb7/NyC+3XFagcoB3qdefTtxFCvnlNDiUGWNuuUAydPMA/JfGEnxsET/3wdR0Jjhu3r1IDMpTlq1Sc4leIBapXXlIsnTUnnVoeWfBEI+8qRGn1nnbTN223k/iVe7D4wDDARcrVM3oVAOo/SsPfWB/EFrLx5g8tE3pHkzhNGta6mF1F2E0s9Z7Voqcfwq4KDqCcWQ3BOJB6T+c3WhB1z9HP56H2DkNXFySTMATF4nVU7euHZz9FhlmapqtBMNJE3ruk7zFPmWNaM/V607IWWCKa0IhnBwzr1xxmUXkCyixYrCg8iEBZHi6XXGQJBoVRRXPN3q/7E08aGNgohj+FnHQsJJJOSiAFM9S/qYpceOnWMUzHOyD/yPcaBoUKKZD+SPVbhysIR5DGAmfpIU11J/i+ukfsgd4pEwDkKSojKhaaRiLCmTY31q9e2PaVY3705AHrnhFZXUEeqK6zpJPEmWy9gxEYU40LIFjVasSqGRxP+N28q73XnSJWu3RSq2A8zM6eVEHIBDr7SjAiDwGtEs+0hZVOh/8+LPRJC83Y09HIlU22hKVcUAYo+1u0BaJJtcTB8uTNPM5ZXx6o9QkhzkMUnqdntiSp3ETfoVzZb9kJt8gH1QGBTVYokQEDJ3IMeKgZj69ioavT6SNhhImSR5u05cIDErO2qMkhTJIoGJpmzr/CvNtVhSGcqUu/Cq5R/wWm30vCiQrlMz5HAnQQ4zviTIbEFWaBfsbUXH5GxGpwQGI6lb16/tr4hQdcEctWLZsC2ZqyAJh8SQlKXAErG2nyJ7IVsjMP385NUdb05O9yjv+hURBwchWQsE4kWa2/iRC9+C9yW6g8QgqfLX160uyWKWT4KaiINjLRJyWrDykK2zaEqDRIKkkpQGf+WvXm6ETAmMPO524wBHHmavARCyoDwvVVqWNqLnueAgqVgkqz/Af/s48W7p6hXkri6MHLIUVQZmErPI0hLgEBTWMY7zCjFKxZH+qx9eXSAritrdiWfpnlpBRKwxOjR0K+XUI23tgmRKUTHyATWGlzQ20TWOX79IRVG77rpbfz6OtJayWyCSyjD3NN/dhReYn0gQQS1rpd6Ww+umJEVRxwEQzD5yzzpI3zFiByIpRSQYUeCMUml5EBPO89oT8ivXhJ41EOdv1jCZui5FLOiPOFdKm1Yipo0JCSbtIiH65UmwiuvqdUspK+aDk9L6qxKIH9CT0sT1EmCsqiqlfN13XHIGRxH9WnLe0s2s4lW9fE3H9W0V+0Bo4aslc/LUON64pnwj9jdFlK4B5bmQFFuCSNPKBVLlq9d0XN9btXgWDQQEUdWW+/GruqaX4E/V3EszVMOa7MvU73tq7davWKbOW1KhiidGW2oykUr2CWi1BVKeK38DNFZuWc7CyC391flNtduqXzHf3a21skxslEspkvX7K81SLBlMVeZLRBkGkLvMLEwQwdrzV5TIh9280jvlsYkNvHWGzDvNA54CQMqAzCveGIFPUkfD1nDMKl++lo0UJBDtiGJNoFC7VS0xQaeA2qbLJhAesdokDmMlv2zsNzdARNa0gH3YXZleK4cJpjqs5cYZ4fQ44QiWWmUKi40w5qmDI0nWAYl/td54s0/j/tO5DwYL63Hip34Vo2hxbBMkUnsjNlgFZD/DochWtF55p7DeHjHfqlYPv0TmLzo0AIy7Z1NEeRUKRIzdkUOqtziZ2KZ17QMBrli6QBpQ4f+j2eVlv3+EBY1891eiYvG0v7OjoRR26wm3Am2Eq6iKqGsK1o0yjBwZS45ped0AQki0700DjcLC0qzdm/V6sz4WuHZ/RSYXOx2D5JMVCBVHYsMAS2wCUI5IcvkPSErJRDLHuOKr1kYgep/xqA+evEelgRki8XbyGv7nB2MHkeywgt0Xek9Tyc4rVXoyVZL3KQ0Qtu+U84xaLAB++CSFRIJlLi1Fu0XKaI5ms37Vn61WsxUhWUWLm2JdPnEe3Z//SLc6AEIj6ZwLEF13EyAZzUcZv0vFBJhkDskGKBZNkn7VgbX7RiIf20pQvzebrbCV6wj7OrCgEu3vn9/4gvgEx0Bfbn4kkacdGQhnB04vBqmyfZWkWrDyBCTTQEoIDrDMACPXHQ0Z/l46OI7oCpRkHOqWruj1Z7Neu8djhVXYVXSOKn7u6BOggLXeP9/CSNxxHz2kek/fajMBSU26iuqk6rS0hcRWCkx+1zfny74OiIkJ7bXFQT7rUjYjcbTBd6ndiK2VFWzxaR/1ZGdnC4FEHzwgHcChtEBMgwIGw1InFcZtWZNpmfzEpeczkge1pmggqZNsotBQHoJjt72Cg8vIsVaIcqz4AG2LzOudhwRw1I6FaM9VgVmnFAnNFm3O0VEMHTPz3Mt4wZK1RJI690RigQCOXRntdj+Jq7LDJosedF/0HUP2FkCuPSB7apm7FmKWUAm9yv1NWgbSahGO0msKmr2vNZAqD0VCTO6o997gACQz3JrviGrcGOtFKznfKpa4QFTdql0LsdGd6giawvrMV+ThJ+7x5XtCQmtv+O8SYoc0/segfT0XSI/Yv0zELjAa+2Kr6O4ql6I0PPaav519QYfHuvJoNXGAtb/vgXJVRzGtAp3E9jBz4rqFQbpV5flSZvLkALnfkjrKFRX8n7PLih0/qd+R26L5wN9t2ap07uMwF0OU6NUKiFQiRkLTRWMwHnpF/RPitTC8x8u63mmMzrY85drKRJQ6DuVhMisriRLTdcloc81sYaHLLpv0EYS79/0Zd8qleduufl++vN+z3heR9Kjto7II5OXFdjkU/qBoEh3sVBDD/JbEuJGRGLdFoLPcLckD8Hk35/I9xu33M9nKzp0Z7/bErxEQUSwSCTewdAKBvPthcff8/NOyA8kImNLJxbt3O9VBJcmsm/RM5kbTVOlCqd1kw6lFtrl+TxKZkYkk3tLvtlkk/T57X/moTQ4YkGSdnYNqaXH8gBSff+oY6Ew7B4pwJK6BzMtut1tOdERBTmuQEG9JHfYRc/tQt0t1bwGyBke7p4G0GUZbGwnvh5Xp8qC1s3PAcytevnXxnoO/HqCGo1Jxf5vhi/Ec9QRGd+54r0wbigukpYtggCPP25S/A5DZJQK5bPdcIDBlPHp0dNkzHVMMqIctRX3a+N7lqPDuAhd8CSnGeiznHRkGSVR8Njg0GZpPuqjbedff6zHqRPHOYbbxpNtt59QKxUAuZ+S0jnq+SHZ3V3g0ngU42NrrmvZayTgujBsC3tgMJgWKY58yKusfntCWqctK6X3wySRvk5WCdrnte1qdyNqtboG/6vL53F9ggCSzXjtQrj7ha7t6hQOLf4rL4p13C5d1wIzvG0iekGJ2PCcHdp6hQJCrKi2QeRemhFuiIBQHiSYcRC8NIVTxJO/mGggKaPb+cnZEQPrO0su0wZtdWsqoP+5TZS/GtoJ04HAOKS3chHl6x/Nw1QGMCnWfmIMWSDIv+etxfm0HSeq636TWAR70qtsm5BoIGMkRX9ILrIGiycxQRtNdOCN/gl0ugMTPMDpI6W88vdpvhE70u6xZeFOBTnEn3bZFkhs70fW21AfSAsWi00iAXQJyqYHMek4rpJ77+57/HgZSeUitEQkoF6yvhwSg2CJcce4bOY2Dgw5emVI8UrpLhOYkSLrYlcL19tQHUhnuCCd1+Rr2DgwkThxzt/PutXcbyCAn4S5CxSKpopCrdJ5sFLxZFAtwaQGOMiYgKpsr3XI4wdnnFkm3+/YtFgUNWVSQysMBwyQx5NAFaFfwFZdWIqG5c5Pqe47sjl8WICkDUcsm7brxWUlx40GJ0O+isWcqMUBKkoNAwbXuluXbyVtDtkoEMrdAWloe1DFxxEAsg+x5kQStvB1ISQOJU9GtzEdCuvXUiCcfIg3l3fXnDJUqPVXstPiPWxTclALjbTmxOwQ1Fnzezm2ugSLRZ6O1IxDD1SgZbLs4KMQblWM5AXAFDJPsBClp6gSSp3MY0c66FpwPFzCuT6IRLYHiXQNz/0fXwZGT3wLdsvtQ6dsSyctk7mQmXXMFAul7QAJ7kJk7QNpCtthnsc2qz8X1BdrFxY0xjc1sZYBVcrr6tI4lHpJE2hYHmXDpKBYCAYG8fWtl1Mpz4x+wEQeAXGogbhB36FXPDZIEJGGvpYFkg5/ocChREpkVSQBEjAQtYFLaBLdsAsF+E40c3BYBETLQbveaQEAeuzomCkXhVsk45dmg4W7dXzf4DGyTLyUkidatWpBYx9UtndUv38J7wOECIZHkfDYB6SfG1tcCIdfFWAiI9HyWKJBTUvj087Y4UtwiUyac2vs7Jl1HuWhupbv4IpHJxN2+TY2NgJH031sgxqwdIG2yfzjcey98fiZ7XSlEARLIst5WJI+fM7wOfgA/Jxd+qreV4q51QgzEvREEa7/oxyZvS6+FX18ERnL0/vIydoD0HKtmIPiT0ZiaPGdvWiD1aluRjMBZ1ygQhVV3dsIaSen7ra67/QmaVZJDBkfm3VWRm6gYO0COLJC20SxRKSxuiQlRpYhw1KenxDOWdZoWW2oWuggizwpr0xnExVOuJFgg2KlU+x0ABASNHazdF0mbcsR2u0YgR8b7WiSOQFAibUtXcAkJh2qxhZDZbqVbA/R1FA5pT0rJbQan2G1c60hdUheQV5VLJwIEQqK7U41bDu0uUxoXyMwNfgGQ3ZkgwY5gslL2OrFQrs/FyY+xnGQiDSX3fCDnOmUsJes723hQXdRAMLYHN7qk7ZyQdOtZ3wDBjMRDYkweXfD7Hr7LMyJ81ucoJk7p5/TH0aT4zFsYKBVSLtoGASQZ9k6japVl3sSRlwikRCDgfz2R5CCSnLRrBkBMNtZr+8plTB6PodcCHBLJUtIrHeJTNP4tDH6Ehh5LXiYyUQiilh2qkttnvEaHPEUg6H5BIJPSbvaKlZBy5fVlv28LqIFINBDyweh/27R4yLFaunbAzLFSe1uZyR3V5EiMRDpj6ewVKOA9QgPB7Z0JSwQFMqlTFwkDQZHUR+7zj0KRGCD46/0K/gb4GRRKK2WblS57IB1beeAF75DxPRSsZVqmrdZSKV1e9HGAibxlkQCQSQCkxCjSABKKRA88xD1DigqwVFqbs0jYg2XpFsX4xYC8HCkU0xyx/QqhnJJYlFsoZRwlAiHfy0DSBhCIO0ceEOK/a5D0AMYe2zjjoJtMMNGJuRySlVso1slniB2rWnYtlZgYokBoc4awFH9uOvVT1CwLZF76PREl2jqm7f2+Wzru6/X3BnzbHqsTxWK0jlp8Vpru4XJuRYAhE1HVqmah8J5fqe+OIGHI26Xe1eVRkiC0QASv6VwsuTpZJ0dHLpCjpkhwTTLDuvluS5XKevLB7XBEBX4P3Vuo/GHmzPHx9DT1B0T6icYxn5vGIWospdQSyw9HR/GRU6Gc+Uj4FgxgI9jkiHf0nnL1o5L+z1T6iwZbRnZIjJcSfMxIRMW4wydtjFNYeoFW1vN5XBokKJAujTKJAYhrJJeXsqveZvPmTd8lRg0sIZ+mrjpgAYH0HRRtm24bCogrD4hs9chulaq0sCp5koZRwFYgJnjvAIkRiCOQqk7lbmXyUZkY3mmLlatFbosHIMiMvUJ02Yo1jnBRBEUiF2emmh07N/GoJUcVnkWsKZ0vKJSR3M9TL2sYy6Uo3alR0xZ8S27QSzKI1lGR79d/WBojy22z3YHeDafJyh1Uqb4hVTDUQsBSEgzTM/1Zph8TQrHnFGec7ZFCwmvprmW7y4wFsgohiTPUyty/JXu+6IUp//68bZv2M9MTqV/A5XMzvSWvvEih8u1HFoDB0B7qnM5t2dvCMnuGPdu8i5dM1s2NMQnf66OXNeNcd7F19eFO4rmUgqRo6uhNKc9sMbLQC5uVuMpze3ImXUTmoQhyrggDz2ThEs1ukZsyu0smGPN7xqFGUbTN4zaLm/P7p05VVXqtNBz+2kzfbVvLGZphY7Tkv+o4GtPFiIpFWJa1o4akoXy3Kz7mBXDg7VZpZlU4ywwQ+NNEuU6i8/P7+/v9+6cXJXP+pMuNPFG93qJBDMfGQSX3gZipMYo9BFCma900mtZyuayX2hdIvGNSpUre12fGSm+IU1SSJd1d4F4Old0vXtgTXbgF4AMQS6U1J3YEI/qRsV9kKHxWWmpV8oxCuUaUGW9m3B0JVqJ4ZqQhd/EyAE6+lXrSPRz79y82y7obDLTdQ9bGIpnH2uj0vfYcIOVBDuKMal548UzesyWVC9KEIoFBd4NjkUAeqkD3CjEBR3jM+yrdEdfYrNqMg2AciBwq7HPnqZh5VdoYMKiftnzdSb1war2TxjAnlyYgIZazOLB0w8qrd0XkBibCUcWVs/H26QWBuNu6FW6SHBh7N44r02rian7AxvjpTZrTlCVzGmE2pfJ4D0RVCo3KEgiDw/WRbCjOBuLmJ4YWT8HO1cGB47m0KittFAaA+ACi3GmeqjgYHulUVeyvgTz7IRabthdZcqL0n7U4dnZe6NfCHThvM/Eg0m4QNGGuhDFQ8ojL65FKo/laAzOege6XUIbGZJZlkk5Kn7/hErFnRrGOiqjLzr7bC/1axX64kRhVSqyu0kO7K2UdMqmIQWEfypYZtZCHugjwSiRknDPfXabJGj/ewvFmTEzw5cGG/bY1Agm3diu8bb4y3tglI7HTilVR5FPadB0Ooklh6mpcEj4jN9bpJ4fPTIiDfFXF2hy7O7rnL/UthzB2IqD+S9NihBYDq1k5jFLTLHFSiTUJX+MyFXyiXEDaq/lszSyJKRc6QF5qaDzv7PhQokXxBeSxb4FolmS8C7pEJb5WOyn3+coS5GwkEceXWcWUbDpuDmrcVnMJNWpeGRgvN2Z2dtymmnfRB7o3VzlxpeLqkKs5Rpv1g/4UGwU/SMiQeSeFKUULjQ/XODQBtaAkelDnBfyqtECiFynW9dPFNRLKm+vri+sbfeqNazdVEKQz3enu+1qkWJmrUpVWRaM6uvqXuumakZSLgxpgiJqIpb67+EHT2fW6z6lnyIrEf5S1CqQTh0GgVLHLmBVvCii9HgmJw9iJ0GTzHZl5Nh2bSHR9fXODu9HR//HsbOyvtz1Dbhrv+Z1EcmGdRCiRRkiXbT+3+IFM5EQxP3PXQqUBDhUVeoMd2MniJ4Hcu6GlioUEJUiSjNuZm5Bl+qpoUt4jOjSn0TLi0zJTmDHKJywuM56Oa+lKPUe6EZBasX8OSuFRlkrWhwnpXEi9dVX4Ys8JZU5JbG6kZpJEB4eT7xpxSMlZCDb8/87YutxtdP4TQJAM77s4Yj/T0iRcMoUU81wHhE4O7XPJlc7BlF1xLz4m+llCSnu7OeGoqgO/JajT+RkkF9wdKBZi2HU1d6KUVSs/3qu1a11p9lhmzn28DnMRjOY2D3YPB2ZU3N33s0hIsRhKPXfYhxGDX1YNOEjiV1fkeEWiy+y1eAcZlyxkX6208ZZk+gXvBPEazhjK/s8BISyd2FMssZYyUw0ghk36H1UOwjD1VZm9WoIPnZYRhVfL6KaIPrw7aHSc7d//BBAR4rWUSeIkmGDmrbZzjCsoNl2xkTQMRFqUvJ+eKuOS6XK28fPi5F2z46yz9UOOOTdGXby2fE8FNUJZQHuvt1CXTFX2UXqJy1RCXRQJlbqUgepGX1+RdeCkPy2KdUi2DI3nHdskXDyHJUI3Iwkej2kTx4AG+jQgsTjJV+kKmJEkGzhHjoV7BwXZCPzYUiTX/v0mX1STp+pSQSPDcNfcV0abuLjpCAjQCFkf/YIoBAjeMFI4UDpPn87v13QBro8jwe0m189f+M/MdY3AYe8NlWFHm7l2PacJK+NxK4uNk8C5NnTUsC+LHXS3EtA7fAPfzXV0EQHr4ntDrrcE0pBcMVI6iCRi+Jbf2tihVUaKkMotgPoBs0y1HGw5S77syzU4XeK8B9yHeRP9znHi/C3+XTkH6K0UC9ynXwuHYRhzRw42jpq8Fn/hKRfBTWs/4W23RGKEYrcPEn+HpHIqklI3oWg9j+PEt5nKyE54jiPZi6jwA+Bv/rdvPtzJyrHRKpWFRMSQsJDGO97N7OGExUgbqa6j4N6E898KpLgzaiT+hyJg5jpVZT2vKYIrU6iyzGXuvHZBXV+Prq+D+4Z/ipJsBaR0qGDGUY925HURq3IUrEwzGzJ1rRGfrm6NpLFxnGWjtXdAdzr3v1e1RpaWSIjXqmF3rUt3U8HuAfJJma3/ZKmLRWzv2bfJJ6tbv/kRKYtBZPIln3CFYDJTH2mm+omtYXCQ1CvzpREF7jV1/e2PqipGg0H05U7Nm1F8DZNyIo0uJAeuQRSSTvryuO6uwnvir6/1FB4s4MVx7D0v2kzeSZq0K0icwOPvLJi0PtCrQCyv91ykZ61ilVqfYpGbLqUkFzDN2MYM/fvLC6t20XlFIFEx+KLCEbu5ru4wip2dFFcBMx3Ilbr7Qa/MxdPrPpjuZPB8VzeSXWeyVew+G7vZdkSjrn/cKPMH/vWeAhOvuy+qafohu2/w+mhxffE5isrPgz/wkN9tfPKd89ApN7HSVmTIonw6pz3i59fSlmI4/PhxOPx/vn4B6crdlztUM/gtQcYuf13f3T1fXIBXGgxGz893d/h28Toors4O38g4PHv8RV17/uILiPXoT/ybSFfTN944+1WpL0YXFxeD0fUjxM9a17BGfxoGjqG5peTqR/IpGqPBBT5HoE0D86CrZnJRLH6Dpg3frBvyGSrc4fClqw+b1x5+fKm1bby3tzf2pFPcNg79H+Prm/UDZ/8xlE9TmscbL97Y/0nD6egrxnxo9Co43hzCXzi2rzeM6YaLrzYmAlkDiT42/gnLBHX1g8/Zm42jiAozr41/4njDxR9/IBBXALdyYG/7x84NsClsb/Aj++Dx+MpA9kb/N5CFXGA8ROFZ6vF0Oj10JRLpd9ONX3m4cRV+CCQb/99ABqFQHQ0//Mqr/qiV7asjsMefdHmbkbtAtJn8OpBHB4dVHnZV08K636ufdL9vjoutgMhEfh3IdP0KXk0Pbei4GnowHoeajZkP4Mjw6grervG+BX7o0jcfyHgjkGZH7MloNDoJfTgcKxzvunkFab2nJiSfHWvnWkwborJ2fxZKy66LD0SUKwDyOLiFoDkeDyywxwHHmjHSg9F4L/N8htXvq5fDnejd18hOlYV5fLXOkU/XKN3xcC0QnrsPZGCmuadZzWhshTgq/K8AsU7fbI53LNmpoyrFOmP4usbqRbzDtfY/aMwiAFKMsyx00SNPAuFXZFYXtOAfv06jMzCQw2NyY3DEnrAWh1EiV7GGGyLtdB0QUi4HyGIciAyR+Mf2GkDciLFuDc8MkK+buMhZU7HONrrl6TogOHv78nEcfg6eaRRcsRcK1eiCGESTpEwNkA3x4qyhWGxPxfEGKtkAgsplgTQ/hs+1VxMbH3ualo1PosBEmvTxowViFevw+LgR+Bz/dxU49sNje+mxA2TsKJcBUugp3o5ORnr+2tJvge4TjqjQ33IL9lNEIZDpmpxEL+UHM3Oc6PA4ADINDKTwnJV1X0MLxPFNJo4Ut55XFpW6laPjBZJecmRBQAxUqykR67XO/FOHPpBhqGrDwK8fm48NkDVatKctZFyAYcCcRZX0mZB7FWsje2DsTRsZaiAmfTJxwwViFeswMP3QhA4dIEXDrveKbO1YOKfcLl4CIu5XNMbaQNEAEkaNqadYhrBNA79eNIE0nBHayHogRuOMPw6AHIYLiczo46N1pWZC+tTjdUCGTYp1GAhQByEPSEO59gZrcUDieLvnR54AyNn6NOijNQAD5NiPOOaDqatYZ40EuCGRwqoW0MC9MPitw0EiGLl6eBICGa4tFnx0DjZU6yxY8mm0luh8DQ5Z3C6QRqQzqjWmcYtDZ+ajwdhGlpDGHzdLck6NCzTeAJn6iKdWaK5ifQTJ4v9XVxvC/NAHEt0Gxj72U8doMMYiUXELoLA+Zs4LgQz9PPdj5Ga6OGejIkMnBH50zpquD+H2jOOz4cdDxz36QAKGaKx6TL7pZMwmMdYllkEIZAw+evFSxq3VwgApNpx09nHDxZsIjQ/EV649s+YQMm61Ko1F4cYDfcQ5T9vQ1WYcxDUsRdlQNjrbVEXZlAAHQDzlAq41XmPsJ032ddLIBDaXg4a+9ykOfw7IulR+GDWBuMq1V0SLBkfPbou9BvP3DkVBVFxXl3Lc6HrIZ9NN118drl2aQVieO/EChp9DsRmE8QZPu21WldZOUOfYQyewDd3F/3rY8AL+FxShDCW/N55nUxF15GsXmv2apNE9NNq8qWCrDYcONSymjQhzXKxPuDhD/3i85itvGzVsLYTPj7JZbIUyHkRBGo/ph4fXq5v6a3fmVBSKs+PjQxOxH88gGTnmUt4QXlLwGU6nZ+HQ/7b5kC+YugUhqpAM/H1uDH8jp08Edx724NCjc8renr/3wNsTt34J/+rrIYPx/+Yr7VUWxRbnNDaDHhej4FhxsiCk/wOoffGyJPwzcQAAAABJRU5ErkJggg==" alt="GiaZoNest" width="200" height="186">
+      <div><b>Giazo Quiz Reward</b><span>Play the quiz, win a discount from the seller</span></div>
+    </div>
+    <p class="small sub" id="playerShop" style="margin:0 0 0 auto">Giazo Quiz Reward</p>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Setup steps">
+    <button class="tab" role="tab" id="tab-2" aria-controls="panel-2" aria-selected="false"><i>2</i><span>Player Details<small>Today's entry form</small></span></button>
+    <button class="tab" role="tab" id="tab-3" aria-controls="panel-3" aria-selected="false"><i>3</i><span>Quiz<small>Spin the wheel, public results</small></span></button>
+  </nav>
+
+  <!-- Tab 2: Player Details -->
+  <section id="panel-2" role="tabpanel" aria-labelledby="tab-2" class="grid2" hidden>
+    <form class="panel" id="playerForm" novalidate>
+      <div>
+        <h1>Player Details</h1>
+        <p class="sub">Enter your details to play today's quiz. Only the seller and GiaZoNest admin can see them.</p>
+      </div>
+      <div class="notice" role="note">
+        <div class="clock"><b>Today's quiz ends at 00:00:00</b><span class="t" id="clock2">--:--:--</span><span class="small sub" style="margin:0">left</span></div>
+        <ul>
+          <li>The quiz ends at 00:00:00 tonight and a new quiz starts.</li>
+          <li>At 00:00:00 today's entries close and are cleared from this form. The results are then shown to everyone in the Quiz tab.</li>
+          <li>Fresh entries are accepted on the new date. You can play once per day.</li>
+          <li>5 questions in 5 minutes. The best score wins; if scores tie, the faster time wins.</li>
+          <li><b>The winner claims the reward at <a href="https://vishalsaxen.github.io/giazonest/shop.html" target="_blank" rel="noopener">vishalsaxen.github.io/giazonest/shop.html</a></b></li>
+        </ul>
+      </div>
+      <div class="mini" id="mini2"></div>
+      <div class="field">
+        <label for="plName">Name</label>
+        <input id="plName" maxlength="50" autocomplete="name" aria-describedby="plNameErr">
+        <p class="err" id="plNameErr"></p>
+      </div>
+      <div class="field">
+        <label for="plEmail">Email</label>
+        <input id="plEmail" type="email" inputmode="email" maxlength="254" autocomplete="email" placeholder="name@gmail.com" aria-describedby="plEmailErr">
+        <p class="err" id="plEmailErr"></p>
+      </div>
+      <div class="field">
+        <label for="plPhone">Phone number</label>
+        <div class="phone">
+          <select id="plCc" aria-label="Country code">
+            <option value="IN" data-code="+91" data-len="10" data-start="6789">IN +91</option>
+            <option value="AE" data-code="+971" data-len="9" data-start="5">AE +971</option>
+            <option value="US" data-code="+1" data-len="10" data-start="23456789">US +1</option>
+            <option value="GB" data-code="+44" data-len="10" data-start="7">GB +44</option>
+            <option value="AU" data-code="+61" data-len="9" data-start="4">AU +61</option>
+            <option value="SG" data-code="+65" data-len="8" data-start="89">SG +65</option>
+          </select>
+          <input id="plPhone" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="98765 43210" aria-describedby="plPhoneErr">
+        </div>
+        <p class="err" id="plPhoneErr"></p>
+      </div>
+      <p class="msg" id="plMsg" role="status"></p>
+      <div class="actions"><button class="btn" type="submit" id="plStart">Click here to start quiz</button></div>
+    </form>
+
+    <aside class="panel" id="entriesPanel" aria-label="Entries and scores">
+      <header style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline">
+        <h2>Entries and scores</h2><span class="private">Private: seller and admin only</span>
+      </header>
+      <div class="datebar"><label for="date2">Date</label><input type="date" id="date2"><button class="btn ghost" type="button" id="today2">Today</button></div>
+      <div class="tbl"><table>
+        <thead><tr><th class="num">#</th><th>Name</th><th>Email</th><th>Phone</th><th>Status</th><th class="num">Score</th><th class="num">Time</th></tr></thead>
+        <tbody id="entries"></tbody>
+      </table></div>
+      <p class="small sub" id="entriesNote" style="margin:0"></p>
+    </aside>
+  </section>
+
+  <!-- Tab 3: Quiz (public) -->
+  <section id="panel-3" role="tabpanel" aria-labelledby="tab-3" hidden style="display:grid;gap:20px">
+    <div class="panel">
+      <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start">
+        <div><h1>Spin the Wheel Quiz</h1><p class="sub" id="q3sub">5 questions in 5 minutes. Best score wins; ties go to the faster time.</p></div>
+        <div class="clock"><span class="small sub" style="margin:0">Ends in</span><span class="t" id="clock3">--:--:--</span></div>
+      </div>
+      <div class="mini" id="mini3"></div>
+    </div>
+
+    <div class="play">
+      <div class="panel" id="gameArea">
+        <div id="game" hidden style="display:grid;gap:14px">
+          <div class="hud">
+            <div class="stat"><b id="timer">5:00</b><span>Time left</span></div>
+            <div class="stat"><b id="score">0</b><span>Points</span></div>
+            <div class="stat"><b id="qn">0/5</b><span>Questions</span></div>
+          </div>
+          <div class="bar"><i id="tbar" style="width:100%"></i></div>
+          <div class="dots" id="dots"></div>
+          <div class="wheelbox"><div class="pointer"></div><canvas id="wheel" width="760" height="760" aria-label="Quiz wheel"></canvas><div class="hub">SPIN</div></div>
+          <button class="btn" type="button" id="spin" style="justify-self:center">Spin the wheel</button>
+          <p class="small sub" style="margin:0;text-align:center">The 5-minute timer starts on your first spin.</p>
+        </div>
+        <div id="qArea"></div>
+        <div id="result" hidden style="display:grid;gap:12px"></div>
+      </div>
+
+      <div class="panel">
+        <header style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline">
+          <h2>Results</h2><span class="small sub" style="margin:0" id="lbCount"></span>
+        </header>
+        <div class="datebar"><label for="date3">Quiz date</label><input type="date" id="date3"></div>
+        <p class="small sub" style="margin:0" id="lbNote"></p>
+        <div id="winner3"></div>
+        <ol class="lb" id="lb"></ol>
+        <p class="small sub" style="margin:0">Names, phone numbers and emails are hidden for everyone. Emails show as x*****@giazonest.com.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="panel-0" class="panel" hidden>
+    <h1>This quiz link isn't complete</h1>
+    <p class="sub" style="margin:0">Ask the seller to send the Player page link again. It should end with #o= followed by a long code.</p>
+  </section>
+</div>
+
+<dialog class="confirm" id="confirmDlg" aria-labelledby="confirmTitle">
+  <form method="dialog">
+    <h2 id="confirmTitle">Are you sure you want to continue?</h2>
+    <p id="confirmText"></p>
+    <div class="actions"><button class="btn ghost" value="no" type="submit">Cancel</button><button class="btn" value="yes" type="submit" autofocus>Yes, continue</button></div>
+  </form>
+</dialog>
+
+<script src="app.js"></script>
+
+
+</body>
+</html>

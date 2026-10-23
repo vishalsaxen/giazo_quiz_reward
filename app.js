@@ -241,8 +241,8 @@
     return `${shop}_${digits().slice(-4)}_${dd(d.getDate())}${dd(d.getMonth() + 1)}${String(d.getFullYear()).slice(-2)}`;
   };
   async function makePlayerLink() {
-    // Short link: <site>/DES_3210_231026#<packed prize details>. No photo, so it stays short; 404.html routes it to player.html.
-    const url = new URL('./', location.href).href.split('#')[0] + quizCode() + '#' + await packShort(readForm());
+    // Short link: player.html#DES_3210_231026.<packed prize details>. No photo, so it stays short.
+    const url = new URL('player.html', location.href).href.split('#')[0] + '#' + quizCode() + '.' + await packShort(readForm());
     $('#shareUrl').value = url; $('#openLink').href = url;
     $('#shareBox').hidden = false;
     $('#shareBox').scrollIntoView({ block: 'nearest', behavior: 'smooth' });

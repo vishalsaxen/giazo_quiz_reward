@@ -262,19 +262,20 @@
   const maskEmail = e => (e[0] || 'x').toLowerCase() + '*****@giazonest.com';
   const QUIZ_SECONDS = 300, PER_Q = 20;
 
-  // Question source (not shown to users). The preview uses sample questions in the same MCQ style.
+  // Question source (not shown to users). questions.js holds a Class VII bank; every player gets a fresh random 9.
   const QUIZ_SOURCE = 'https://ttc-quizzes.github.io/ttc-quiz-portal/';
-  const QBANK = [
-    { t: 'Food', q: 'Which nutrient is the main source of energy for our body?', o: ['Carbohydrates', 'Vitamins', 'Minerals', 'Water'], a: 0, e: 'Carbohydrates such as starch and sugar are the main energy source.' },
-    { t: 'Tests', q: 'Iodine solution turns a food sample blue-black. Which nutrient is present?', o: ['Protein', 'Fat', 'Starch', 'Vitamin C'], a: 2, e: 'Starch turns blue-black with dilute iodine.' },
-    { t: 'Vitamins', q: 'Deficiency of Vitamin C causes which disease?', o: ['Rickets', 'Scurvy', 'Beri-beri', 'Goitre'], a: 1, e: 'Scurvy causes bleeding gums and slow wound healing.' },
-    { t: 'Fibre', q: 'Which part of food gives no nutrients but helps remove undigested food?', o: ['Proteins', 'Roughage', 'Fats', 'Minerals'], a: 1, e: 'Roughage (dietary fibre) adds bulk and helps digestion.' },
-    { t: 'Tests', q: 'The protein test uses copper sulphate solution and which other chemical?', o: ['Iodine', 'Caustic soda', 'Vinegar', 'Salt water'], a: 1, e: 'Copper sulphate with caustic soda turns violet if protein is present.' },
-    { t: 'Vitamins', q: 'Rickets in children is caused by a lack of which vitamin?', o: ['Vitamin A', 'Vitamin B1', 'Vitamin D', 'Vitamin K'], a: 2, e: 'Vitamin D helps the body use calcium for bones.' },
-    { t: 'Minerals', q: 'Goitre is caused by the deficiency of:', o: ['Iron', 'Iodine', 'Calcium', 'Phosphorus'], a: 1, e: 'Iodine is needed by the thyroid gland.' },
-    { t: 'Fats', q: 'Rubbing food on paper leaves an oily patch. The food contains:', o: ['Fat', 'Starch', 'Protein', 'Fibre'], a: 0, e: 'Fats leave a translucent oily patch on paper.' },
-    { t: 'Water', q: 'About how much of our body weight is water?', o: ['About 10%', 'About 30%', 'About two-thirds', 'Almost all of it'], a: 2, e: 'Roughly two-thirds of the body is water.' },
-  ];
+  const QBANK = window.GIAZO_QBANK || [];
+  // Prefer questions this browser hasn't seen recently, so a replay or the next player on the same device gets new ones.
+  const SEEN_KEY = 'giazo-seen-q';
+  function pickQuestions(n) {
+    let seen = [];
+    try { seen = JSON.parse(localStorage.getItem(SEEN_KEY) || '[]'); } catch (e) {}
+    const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+    const ids = [...QBANK.keys()], fresh = shuffle(ids.filter(i => !seen.includes(i))), old = shuffle(ids.filter(i => seen.includes(i)));
+    const pick = fresh.concat(old).slice(0, n);
+    try { localStorage.setItem(SEEN_KEY, JSON.stringify(seen.filter(i => !pick.includes(i)).concat(pick).slice(-Math.floor(QBANK.length * .7)))); } catch (e) {}
+    return pick.map(i => QBANK[i]);
+  }
   // Like NXTROI's wheel, each segment carries one letter of the brand name.
   const WHEEL_WORD = 'GIAZONEST';
   const WCOL = ['#F2591B', '#1C4FC4', '#232B33', '#4F8A2A', '#8A5A2B', '#7A5BB5', '#C7410E', '#1E7F4F', '#B8336A'];
@@ -415,7 +416,7 @@
 
   // ---------- Tab 3: wheel game ----------
   function drawWheel() {
-    const c = $('#wheel'), x = c.getContext('2d'), n = QBANK.length, R = 370, cx = 380, seg = 2 * Math.PI / n;
+    const c = $('#wheel'), x = c.getContext('2d'), n = WHEEL_WORD.length, R = 370, cx = 380, seg = 2 * Math.PI / n;
     const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
     x.clearRect(0, 0, 760, 760);
     for (let i = 0; i < n; i++) {
@@ -436,7 +437,7 @@
   function stopRun() { if (play.run) { clearInterval(play.run.tick); play.run.ended = true; } play.run = null; }
   function newRun() {
     stopRun();
-    play.run = { done: new Set(), asked: 0, score: 0, left: QUIZ_SECONDS, started: false, rot: 0, busy: false, log: [], tick: null, ended: false };
+    play.run = { qs: pickQuestions(WHEEL_WORD.length), done: new Set(), asked: 0, score: 0, left: QUIZ_SECONDS, started: false, rot: 0, busy: false, log: [], tick: null, ended: false };
     $('#dots').innerHTML = '<i></i>'.repeat(5);
     $('#timer').textContent = mmss(QUIZ_SECONDS); $('#timer').classList.remove('low');
     $('#tbar').style.width = '100%'; $('#score').textContent = '0'; $('#qn').textContent = '0/5';
@@ -484,7 +485,7 @@
     const r = play.run; if (!r || r.busy || r.asked >= 5) return;
     if (!r.started) startClock();
     r.busy = true; $('#spin').disabled = true;
-    const n = QBANK.length, seg = 360 / n, free = [...Array(n).keys()].filter(i => !r.done.has(i));
+    const n = WHEEL_WORD.length, seg = 360 / n, free = [...Array(n).keys()].filter(i => !r.done.has(i));
     const i = free[Math.floor(Math.random() * free.length)];
     const target = (360 - (i + .5) * seg + ((Math.random() - .5) * seg * .6) + 360) % 360;
     const cur = ((r.rot % 360) + 360) % 360; r.rot += 5 * 360 + ((target - cur + 360) % 360);
@@ -495,14 +496,14 @@
   });
   function ask(i) {
     const r = play.run; if (!r || r.ended) return;
-    const q = QBANK[i]; r.asked++;
+    const q = r.qs[i]; r.asked++;
     $('#qn').textContent = `${r.asked}/5`;
     $('#qArea').innerHTML = `<div class="qcard"><span class="tag">Letter ${WHEEL_WORD[i]} · Question ${r.asked} of 5 · ${esc(q.t)} · +${PER_Q} pts</span><h3>${esc(q.q)}</h3>
       <div class="opts">${q.o.map((o, k) => `<button type="button" class="opt" data-k="${k}"><b>${'ABCD'[k]}</b>${esc(o)}</button>`).join('')}</div><div id="ex"></div></div>`;
     $('#qArea').querySelectorAll('.opt').forEach(b => b.addEventListener('click', () => answer(i, +b.dataset.k)));
   }
   function answer(i, k) {
-    const r = play.run, q = QBANK[i], ok = k === q.a;
+    const r = play.run, q = r.qs[i], ok = k === q.a;
     $('#qArea').querySelectorAll('.opt').forEach(b => { b.disabled = true; const kk = +b.dataset.k; if (kk === q.a) b.classList.add('right'); else if (kk === k) b.classList.add('wrong'); });
     if (ok) r.score += PER_Q;
     $('#score').textContent = r.score;

@@ -16,10 +16,13 @@ The prize travels inside the Player page link (`player.html#o=...`), so there is
 - Tabs open in order: Player Details unlocks after the seller saves Seller's Details, and Quiz unlocks after a player starts. Both steps ask "Are you sure you want to continue?" first.
 - Tab 3 shows only the wheel while playing. Once a buyer starts, they stay on Tab 3 until the next day, when they see the previous day's results.
 
+## Questions
+`questions.js` holds a bank of 189 Class VII multiple-choice questions (NCERT Science, Maths, History, Geography, Civics, English and GK). Every player gets a fresh random 9, one per wheel letter, and a browser avoids questions it showed recently, so replays on the same device get new ones. Add questions to the bank in the same format to widen the mix.
+
 ## Daily reset and results
 At 00:00:00 the day's quiz ends, the entry form clears, and a new quiz opens. The closed day's results then show to everyone in the Quiz tab, with a date picker for earlier days. Super Admin and Seller can see entries and scores for any date, including today, in Player Details.
 
 ## Run
-Open `index.html` in a browser, or enable GitHub Pages on the `main` branch. `app.js` and `app.css` are shared by both pages.
+Open `index.html` in a browser, or enable GitHub Pages on the `main` branch. `app.js`, `app.css` and `questions.js` are shared by both pages.
 
 Live: https://vishalsaxen.github.io/giazo_quiz_reward/

@@ -334,11 +334,13 @@
   async function packShort(o) {
     const a = [o.shop, o.phone, o.pname, o.desc].concat(o.type === 'coupon' ? [1, o.coupon] : [0, o.mrp, o.win, o.pct]);
     const raw = new TextEncoder().encode(JSON.stringify(a));
-    if (typeof CompressionStream === 'undefined') return 'j' + b64u(raw);
-    return 'z' + b64u(await pipe(raw, new CompressionStream('deflate-raw')));
+    // 'deflate' works in every browser that has CompressionStream; plain text is the fallback.
+    try { return 'z' + b64u(await pipe(raw, new CompressionStream('deflate'))); } catch (_) { return 'j' + b64u(raw); }
   }
   async function unpackShort(t) {
-    const bytes = t[0] === 'z' ? await pipe(unb64u(t.slice(1)), new DecompressionStream('deflate-raw')) : unb64u(t.slice(1));
+    // Links made on 23 Oct 2026 before 15:00 used 'deflate-raw', so fall back to it.
+    const inflate = async f => pipe(unb64u(t.slice(1)), new DecompressionStream(f));
+    const bytes = t[0] === 'z' ? await inflate('deflate').catch(() => inflate('deflate-raw')) : unb64u(t.slice(1));
     const [shop, phone, pname, desc, kind, x, y, z] = JSON.parse(new TextDecoder().decode(bytes));
     return Object.assign({ shop, phone, pname, desc, img: null }, kind === 1 ? { type: 'coupon', coupon: x } : { type: 'price', mrp: x, win: y, pct: z });
   }

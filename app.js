@@ -72,6 +72,7 @@
   const touched = new Set();
   const ccOpt = () => $('#cc').selectedOptions[0];
   const digits = () => { let d = $('#phone').value.replace(/\D/g, ''); if (d.length > 1 && d[0] === '0') d = d.slice(1); return d; };
+  const isCoupon = () => $('#ptCoupon').checked;
   const rules = {
     shop: () => { const v = $('#shop').value.trim(); return !v ? 'Enter your shop name.' : v.length < 2 ? 'Shop name must be at least 2 characters.' : ''; },
     phone: () => {
@@ -85,15 +86,16 @@
     pname: () => { const v = $('#pname').value.trim(); return !v ? 'Enter the product name.' : v.length < 3 ? 'Product name must be at least 3 characters.' : ''; },
     img: () => state.img ? '' : 'Add a product image.',
     desc: () => { const v = $('#desc').value.trim(); return !v ? 'Describe the product.' : v.length < 20 ? 'Write at least 20 characters so buyers know what they can win.' : v.length > 500 ? 'Keep the description to 500 characters.' : ''; },
-    mrp: () => { const n = num($('#mrp').value); return !$('#mrp').value.trim() ? 'Enter the MRP.' : isNaN(n) || n <= 0 ? 'MRP must be a number above 0.' : n > 1000000 ? 'MRP must be ₹10,00,000 or less.' : ''; },
+    mrp: () => { if (isCoupon()) return ''; const n = num($('#mrp').value); return !$('#mrp').value.trim() ? 'Enter the MRP.' : isNaN(n) || n <= 0 ? 'MRP must be a number above 0.' : n > 1000000 ? 'MRP must be ₹10,00,000 or less.' : ''; },
     win: () => {
+      if (isCoupon()) return '';
       const m = num($('#mrp').value), w = num($('#winPrice').value);
       if (!$('#winPrice').value.trim()) return 'Enter the price the winner pays.';
       if (isNaN(w) || w < 0) return 'Winner price must be a number.';
       if (!isNaN(m) && w >= m) return 'Winner price must be lower than the MRP.';
       return '';
     },
-    pct: () => { const p = num($('#pct').value); return isNaN(p) ? 'Enter a discount.' : p < 5 || p > 90 ? 'Discount must be between 5% and 90%.' : ''; },
+    pct: () => { if (isCoupon()) return ''; const p = num($('#pct').value); return isNaN(p) ? 'Enter a discount.' : p < 5 || p > 90 ? 'Discount must be between 5% and 90%.' : ''; },
   };
   const fieldFor = { shop: '#shop', phone: '#phone', pname: '#pname', img: '#drop', desc: '#desc', mrp: '#mrp', win: '#winPrice', pct: '#pct' };
   const errFor = { shop: '#shopErr', phone: '#phoneErr', pname: '#pnameErr', img: '#imgErr', desc: '#descErr', mrp: '#mrpErr', win: '#winErr', pct: '#pctErr' };
@@ -131,6 +133,17 @@
   $('#pct').addEventListener('input', () => { const p = num($('#pct').value); if (!isNaN(p)) $('#pctRange').value = String(Math.min(90, Math.max(5, Math.round(p)))); fromPct(); update(); });
   $('#mrp').addEventListener('input', () => { fromPct(); update(); });
   $('#winPrice').addEventListener('input', () => { fromWin(); update(); });
+  // Winner's prize: either the MRP / Winner pays price or a discount coupon (5% steps). Only the chosen one reaches player.html.
+  function setPrizeType() {
+    const c = isCoupon();
+    ['#mrp', '#winPrice', '#pct', '#pctRange'].forEach(s => $(s).disabled = c);
+    ['#coupon', '#couponRange'].forEach(s => $(s).disabled = !c);
+    $('#priceBox').classList.toggle('off', c); $('#couponBox').classList.toggle('off', !c);
+    update();
+  }
+  ['#ptPrice', '#ptCoupon'].forEach(s => $(s).addEventListener('change', setPrizeType));
+  $('#couponRange').addEventListener('input', () => { $('#coupon').value = $('#couponRange').value; update(); });
+  $('#coupon').addEventListener('change', () => { $('#couponRange').value = $('#coupon').value; update(); });
   ['#shop', '#phone', '#pname', '#desc', '#cc'].forEach(s => $(s).addEventListener('input', update));
   $('#cc').addEventListener('change', () => { $('#phone').placeholder = { IN: '98765 43210', AE: '50 123 4567', US: '(201) 555-0123', GB: '7400 123456', AU: '412 345 678', SG: '8123 4567' }[$('#cc').value]; update(); });
 
@@ -173,12 +186,19 @@
     $('#pvDesc').textContent = desc || 'Product description';
     const d = digits();
     $('#pvPhone').textContent = d ? `${ccOpt().dataset.code} ${d.replace(/(\d{5})(\d+)/, '$1 $2')}` : 'Phone number';
-    $('#pvImg').innerHTML = (state.img ? '<img alt="">' : '<span>Product image</span>') + (!isNaN(p) && p > 0 ? `<span class="ribbon">Winner gets ${round2(p)}% off</span>` : '');
+    const cp = +$('#coupon').value, coupon = isCoupon();
+    const ribbon = coupon ? `Winner gets a ${cp}% coupon` : !isNaN(p) && p > 0 ? `Winner gets ${round2(p)}% off` : '';
+    $('#pvImg').innerHTML = (state.img ? '<img alt="">' : '<span>Product image</span>') + (ribbon ? `<span class="ribbon">${ribbon}</span>` : '');
     if (state.img) { const im = $('#pvImg img'); im.src = state.img; im.alt = name || 'Prize product'; }
     const okPrice = !isNaN(m) && m > 0 && !isNaN(w) && w < m;
     $('#pvWin').textContent = okPrice ? fmt(w) : (!isNaN(m) ? fmt(m) : '₹0');
     $('#pvMrp').textContent = okPrice ? fmt(m) : '';
     $('#pvSave').textContent = okPrice ? `Save ${fmt(round2(m - w))}` : '';
+    if (coupon) {
+      $('#pvWin').textContent = `${cp}% off coupon`; $('#pvMrp').textContent = ''; $('#pvSave').textContent = 'for the winner';
+    }
+    $('#pvNote').textContent = coupon ? 'Only the quiz winner gets the discount coupon for your products. Everyone else pays the usual price.' : "Only the quiz winner can buy at the winner's price. Everyone else sees the MRP.";
+    $('#couponCalc').innerHTML = `The winner gets a <b>${cp}% discount coupon</b> for your products.`;
     $('#calc').innerHTML = okPrice
       ? `MRP ${fmt(m)} &minus; <b>${round2(p)}%</b> = winner pays <b>${fmt(w)}</b> (saves ${fmt(round2(m - w))})`
       : 'Enter the MRP and a discount to see what the winner pays.';
@@ -207,6 +227,7 @@
   $('#resetBtn').addEventListener('click', () => {
     ['#shop', '#phone', '#pname', '#desc', '#mrp', '#winPrice', '#pct'].forEach(s => $(s).value = '');
     $('#pctRange').value = 20; touched.clear(); $('#tab-1').classList.remove('done');
+    $('#ptPrice').checked = true; $('#coupon').value = $('#couponRange').value = '10'; setPrizeType();
     setImage(null, ''); touched.clear(); check(); update();
     $('#shareBox').hidden = true;
   });
@@ -243,13 +264,15 @@
   readForm = () => {
     const d = digits(), m = num($('#mrp').value), w = num($('#winPrice').value);
     return { shop: $('#shop').value.trim(), phone: d ? `${ccOpt().dataset.code} ${d.replace(/(\d{5})(\d+)/, '$1 $2')}` : '',
-      pname: $('#pname').value.trim(), desc: $('#desc').value.trim(), mrp: m, win: w, pct: round2(num($('#pct').value)), img: state.img };
+      pname: $('#pname').value.trim(), desc: $('#desc').value.trim(), img: state.img,
+      ...(isCoupon() ? { type: 'coupon', coupon: +$('#coupon').value } : { type: 'price', mrp: m, win: w, pct: round2(num($('#pct').value)) }) };
   };
   // start with an example filled in
   $('#shop').value = SAMPLE.shop; $('#cc').value = SAMPLE.cc; $('#phone').value = SAMPLE.phone; $('#phone').placeholder = '98765 43210';
   $('#pname').value = SAMPLE.pname; $('#desc').value = SAMPLE.desc; $('#mrp').value = SAMPLE.mrp;
   $('#pct').value = SAMPLE.pct; $('#pctRange').value = SAMPLE.pct; fromPct();
-  setImage(SAMPLE.img, SAMPLE.imgName); touched.clear(); update();
+  $('#coupon').value = $('#couponRange').value = '10';
+  setImage(SAMPLE.img, SAMPLE.imgName); touched.clear(); setPrizeType();
   }
 
   // ======================= Tab 2 + Tab 3 =======================
@@ -315,10 +338,14 @@
   const unpackOffer = t => { const s = atob(t.replace(/-/g, '+').replace(/_/g, '/')); return JSON.parse(new TextDecoder().decode(Uint8Array.from(s, c => c.charCodeAt(0)))); };
   let linkOffer = null;
   const offer = () => PLAYER ? (linkOffer || {}) : readForm();
+  // How the winner's prize reads: "at 20% off" (MRP / Winner pays) or "with a 10% discount coupon".
+  const isCouponOffer = o => o.type === 'coupon';
+  const prizeShort = o => isCouponOffer(o) ? `with a ${o.coupon}% discount coupon` : `at ${round2(o.pct)}% off`;
   function prizeMini() {
     const o = offer(), name = o.pname || 'Prize product', shop = o.shop || 'Seller';
     const m = o.mrp, w = o.win, p = o.pct;
-    const price = !isNaN(m) && !isNaN(w) && w < m ? `Winner pays <span class="w">${fmt(w)}</span> <s>${fmt(m)}</s> (${round2(p)}% off)` : '';
+    const price = isCouponOffer(o) ? `Winner gets a <span class="w">${o.coupon}% discount coupon</span>`
+      : !isNaN(m) && !isNaN(w) && w < m ? `Winner pays <span class="w">${fmt(w)}</span> <s>${fmt(m)}</s> (${round2(p)}% off)` : '';
     return (o.img ? `<img src="${o.img}" alt="">` : '<span></span>') + `<div><span>Today's prize from ${esc(shop)}</span><b>${esc(name)}</b><span>${price}</span></div>`;
   }
 
@@ -331,7 +358,7 @@
   function dailyReset(note) {
     // Close yesterday: keep its entries as results, then clear the form's list for the new date.
     const old = play.entries.filter(e => e.date !== today());
-    if (old.length) play.history[play.day] = { shop: offer().shop, prod: offer().pname, pct: offer().pct, entries: old };
+    if (old.length) play.history[play.day] = { shop: offer().shop, prod: offer().pname, pct: offer().pct, prize: prizeShort(offer()), entries: old };
     play.entries = play.entries.filter(e => e.date === today());
     if (play.me && !play.entries.includes(play.me)) { stopRun(); if (play.me.status === 'playing') play.me.status = 'unfinished'; play.pastMe = play.me; play.me = null; }
     play.day = today();
@@ -453,7 +480,7 @@
     const mine = e => play.pastMe && e.email === play.pastMe.email && day === play.pastMe.date;
     $('#lbCount').textContent = h ? `${lb.length} finished · ${h.entries.length} entered` : '';
     $('#lbNote').textContent = `Showing ${day === dayStr(-1) ? 'yesterday\'s' : 'the'} results for ${niceDate(day)}. Results for today's quiz (${niceDate(today())}) appear here after 00:00:00.`;
-    $('#winner3').innerHTML = lb.length ? `<div class="winner"><span class="tag">Winner · ${niceDate(day)}</span><b>*****${mine(lb[0]) ? ' (you)' : ''} · ${maskEmail(lb[0].email)}</b><span class="small sub" style="margin:0">${lb[0].score} pts in ${mmss(lb[0].secs)}. Wins ${esc(h.prod)} at ${h.pct}% off from ${esc(h.shop)}.</span></div>` : '';
+    $('#winner3').innerHTML = lb.length ? `<div class="winner"><span class="tag">Winner · ${niceDate(day)}</span><b>*****${mine(lb[0]) ? ' (you)' : ''} · ${maskEmail(lb[0].email)}</b><span class="small sub" style="margin:0">${lb[0].score} pts in ${mmss(lb[0].secs)}. Wins ${esc(h.prod)} ${h.prize || `at ${h.pct}% off`} from ${esc(h.shop)}.</span></div>` : '';
     $('#lb').innerHTML = lb.length ? lb.map((e, i) => `<li class="${i === 0 ? 'first' : ''} ${mine(e) ? 'me' : ''}">
       <span class="rank">${i + 1}</span>
       <span class="who"><b>*****${mine(e) ? ' (you)' : ''}</b><span>${maskEmail(e.email)} · Phone *****</span></span>
@@ -522,9 +549,9 @@
     const used = QUIZ_SECONDS - Math.max(0, r.left);
     me.status = 'done'; me.score = r.score; me.secs = used;
     const right = r.log.filter(l => l.ok).length;
-    const p = offer().pct, prod = offer().pname || 'the prize';
+    const prod = offer().pname || 'the prize';
     $('#result').innerHTML = `<div><h2>${why}: ${r.score} points</h2><p class="sub">${right} of 5 correct in ${mmss(used)}. Your score is saved.</p></div>` +
-      `<div class="wait-card"><b>Results are announced after 00:00:00</b><span class="small sub" style="margin:0">Come back to this tab after midnight to see the winner of ${esc(prod)} at ${round2(p)}% off. The seller contacts the winner on the phone number they entered.</span></div>` +
+      `<div class="wait-card"><b>Results are announced after 00:00:00</b><span class="small sub" style="margin:0">Come back to this tab after midnight to see the winner of ${esc(prod)} ${prizeShort(offer())}. The seller contacts the winner on the phone number they entered.</span></div>` +
       `<div style="display:grid;gap:8px">${r.log.map((l, n) => `<div class="qcard"><span class="tag">Q${n + 1} · ${l.ok ? 'Correct' : 'Wrong'}</span><div>${esc(l.q.q)}</div><span class="small sub" style="margin:0">Answer: ${esc(l.q.o[l.q.a])}</span></div>`).join('') || '<p class="small sub">No questions answered before time ran out.</p>'}</div>`;
     play.run = null;
     renderTab3();

@@ -4,7 +4,7 @@ A just-for-fun daily quiz for GiaZoNest. A seller offers a product discount, pla
 
 ## Pages
 - **index.html** (Super Admin, Seller): the console. Super Admin sees all 3 tabs and every player entry.
-  1. **Seller's Details**: shop name, phone, product image and description, MRP and the winner's discount. **Save and continue** creates the Player page link to share with buyers.
+  1. **Seller's Details**: shop name, phone, product image and description, and the winner's prize. The seller picks one prize type: **MRP and Winner pays** (a lower price for this product) or a **Discount coupon** (5%, 10%, 15% and so on up to 90% off the seller's products). The Player page shows only the type the seller picked. **Save and continue** creates the Player page link to share with buyers.
   2. **Player Details** and 3. **Quiz**: a preview of the Player page, plus the private Entries and scores table.
 - **player.html** (Buyer): what the seller shares. Only Tab 2 and Tab 3, showing the seller's prize.
   2. **Player Details**: name, email and phone, then start the quiz. One play per email or phone per day.

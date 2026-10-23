@@ -95,6 +95,14 @@ input[type=range]{padding:0;border:0;background:transparent;accent-color:var(--b
 .disc .pct{position:relative}
 .disc .pct input{padding-right:26px;text-align:right;font-variant-numeric:tabular-nums}
 .disc .pct span{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-weight:600}
+.pick{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;cursor:pointer;background:var(--surface)}
+.pick:has(input:checked){border-color:var(--brand);background:var(--accent-soft)}
+.pick input{margin-top:3px;accent-color:var(--brand);width:18px;height:18px;flex:none}
+.pick span{display:grid;gap:2px}
+.pick small{color:var(--muted);font-size:.85rem}
+.pick-body{display:grid;gap:14px;padding-left:6px}
+.pick-body.off{opacity:.45}
+.disc .pct select{width:100%;font-variant-numeric:tabular-nums}
 .calc{background:var(--accent-soft);border-radius:10px;padding:10px 14px;font-size:.9rem;font-variant-numeric:tabular-nums}
 .calc b{color:var(--brand)}
 

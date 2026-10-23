@@ -248,6 +248,12 @@
       im.src = src;
     });
   }
+  // Short quiz code: first 3 letters of the shop name, last 4 digits of the seller's mobile, and the date as DDMMYY (e.g. DES_3210_231026).
+  const quizCode = () => {
+    const shop = ($('#shop').value.normalize('NFKD').replace(/[^A-Za-z]/g, '').slice(0, 3) || 'GZN').toUpperCase().padEnd(3, 'X');
+    const d = new Date(), dd = n => String(n).padStart(2, '0');
+    return `${shop}_${digits().slice(-4)}_${dd(d.getDate())}${dd(d.getMonth() + 1)}${String(d.getFullYear()).slice(-2)}`;
+  };
   async function makePlayerLink() {
     const o = readForm();
     o.img = state.img ? await shrink(state.img) : null;

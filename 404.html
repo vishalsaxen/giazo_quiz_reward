@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Giazo Quiz Reward</title>
+<script>
+  // Short quiz links: /giazo_quiz_reward/DES_3210_231026 opens player.html for that quiz code.
+  (function () {
+    var parts = location.pathname.split('/').filter(Boolean), code = parts[parts.length - 1] || '';
+    var base = '/' + (parts.length > 1 ? parts[0] + '/' : '');
+    if (/^[A-Z]{3}_\d{4}_\d{6}$/i.test(code)) location.replace(base + 'player.html?c=' + code.toUpperCase());
+  })();
+</script>
+</head>
+<body style="font-family:system-ui,sans-serif;padding:40px 16px;background:#F6EFE4;color:#232B33">
+  <h1>Page not found</h1>
+  <p>Check the quiz link the seller shared, or open <a href="./">Giazo Quiz Reward</a>.</p>
+</body>
+</html>

@@ -4,7 +4,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function isAdmin() {
-      return request.auth != null && request.auth.token.email in ['ADMIN_EMAIL'];
+      return request.auth != null && request.auth.token.email in ['vishalsaxen@gmail.com'];
     }
     function common(d) {
       return d.code is string && d.code.size() <= 40 && d.date is string && d.date.size() == 10

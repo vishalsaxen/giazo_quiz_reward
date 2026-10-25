@@ -4,7 +4,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function isAdmin() {
-      return request.auth != null && request.auth.token.email in ['vishalsaxen@gmail.com'];
+      return request.auth != null && request.auth.token.email in ['vishalsaxen@gmail.com', 'gizee@giazonest.com'];
     }
     // Seller who claimed this quiz code's shop prefix (first 3 letters of shop + last 4 phone digits, e.g. DES_3210).
     function ownsSeller(code) {

@@ -12,7 +12,7 @@
   const DB = `https://firestore.googleapis.com/v1/projects/${cfg.projectId}/databases/(default)/documents`;
   const KEY = `key=${encodeURIComponent(cfg.apiKey || '')}`;
   const AUTH_KEY = 'giazo-admin-auth';
-  const ADMINS = ['vishalsaxen@gmail.com'];
+  const ADMINS = ['vishalsaxen@gmail.com', 'gizee@giazonest.com'];
 
   // ---------- Firestore value <-> JS ----------
   const toVal = v => v === null || v === undefined ? { nullValue: null }

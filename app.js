@@ -20,7 +20,7 @@
     mrp: '1499', pct: 20, img: SAMPLE_IMG, imgName: 'rainbow-stacker.jpg (example)',
   };
   const state = { img: null, imgName: '', saved: false, published: false, role: PLAYER ? 'buyer' : 'admin' };
-  const TABS_FOR = { admin: [1, 2, 3, 4], seller: [1, 2, 3, 4], buyer: [2, 3, 4] };
+  const TABS_FOR = { admin: [1, 2, 3, 4, 5], seller: [1, 2, 3, 4], buyer: [2, 3, 4] };
   const ROLE_NOTE = {
     admin: 'Previewing as Super Admin: sees all 3 tabs and every player entry.',
     seller: 'Previewing as Seller: sets up Tab 1 and can check scores for any date in Tab 2.',
@@ -31,7 +31,7 @@
   // Tabs open in order: Tab 2 after the seller saves Tab 1, Tab 3 after a player starts in Tab 2.
   // A buyer who has entered today's quiz stays on Tab 3 until the date changes.
   const buyerLocked = () => state.role === 'buyer' && !!play.me;
-  const tabOpen = i => i === 4 ? true : i === 3 ? !!(play.me || play.pastMe) : buyerLocked() ? false : i === 1 || (i === 2 && state.published);
+  const tabOpen = i => i >= 4 ? true : i === 3 ? !!(play.me || play.pastMe) : buyerLocked() ? false : i === 1 || (i === 2 && state.published);
   const LOCK_TIP = { 2: 'Opens after Seller\'s Details are saved', 3: 'Opens after you start the quiz in Player Details' };
   const lockTip = i => buyerLocked() && i !== 3 ? 'You have entered today\'s quiz. A new quiz opens after 00:00:00.' : LOCK_TIP[i];
   function refreshTabs() {
@@ -45,14 +45,15 @@
   function showTab(n) {
     const allowed = TABS_FOR[state.role].filter(tabOpen);
     // Results (Tab 4) is always open, so fall back to the furthest open step tab instead.
-    const steps = allowed.filter(i => i !== 4);
+    const steps = allowed.filter(i => i < 4);
     if (!allowed.includes(n)) n = steps.length ? steps[steps.length - 1] : allowed.length ? allowed[0] : 0;
     state.tab = n;
     refreshTabs();
     if (n === 2) renderTab2();
     if (n === 3) renderTab3();
     if (n === 4) renderResults();
-    [0, 1, 2, 3, 4].forEach(i => {
+    if (n === 5) renderQuizzes();
+    [0, 1, 2, 3, 4, 5].forEach(i => {
       if (i && $('#tab-' + i)) $('#tab-' + i).setAttribute('aria-selected', String(i === n));
       if ($('#panel-' + i)) $('#panel-' + i).hidden = i !== n;
     });
@@ -64,14 +65,14 @@
     d.addEventListener('close', () => res(d.returnValue === 'yes'), { once: true });
     d.showModal();
   });
-  [1, 2, 3, 4].forEach(i => $('#tab-' + i) && $('#tab-' + i).addEventListener('click', () => showTab(i)));
+  [1, 2, 3, 4, 5].forEach(i => $('#tab-' + i) && $('#tab-' + i).addEventListener('click', () => showTab(i)));
   function setRole(r) {
     state.role = r;
     document.querySelectorAll('.roles button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.role === r)));
-    [1, 2, 3, 4].forEach(i => { if ($('#tab-' + i)) $('#tab-' + i).hidden = !TABS_FOR[r].includes(i); });
-    $('.tabs').classList.toggle('three', TABS_FOR[r].length === 3);
+    [1, 2, 3, 4, 5].forEach(i => { if ($('#tab-' + i)) $('#tab-' + i).hidden = !TABS_FOR[r].includes(i); });
+    $('.tabs').classList.toggle('three', TABS_FOR[r].length === 3); $('.tabs').classList.toggle('five', TABS_FOR[r].length === 5);
     if ($('#roleNote')) $('#roleNote').textContent = ROLE_NOTE[r];
-    showTab(TABS_FOR[r].includes(state.tab) ? state.tab : TABS_FOR[r].filter(i => i !== 4).pop());
+    showTab(TABS_FOR[r].includes(state.tab) ? state.tab : TABS_FOR[r].filter(i => i < 4).pop());
   }
   document.querySelectorAll('.roles button').forEach(b => b.addEventListener('click', () => setRole(b.dataset.role)));
   document.addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) showTab(+b.dataset.tab); });
@@ -250,6 +251,8 @@
     // Short link: player.html#DES_3210_231026.<packed prize details>. No photo, so it stays short.
     const url = new URL('player.html', location.href).href.split('#')[0] + '#' + quizCode() + '.' + await packShort(readForm());
     $('#shareUrl').value = url; $('#openLink').href = url;
+    // Save the quiz so Super Admin can find every seller's quiz and link by date (Quizzes tab).
+    if (CLOUD) { const o = readForm(); GiazoCloud.saveQuiz({ code: quizCode(), date: today(), shop: o.shop, phone: o.phone, prod: o.pname, desc: o.desc, prize: prizeShort(o), url }).catch(() => {}); }
     $('#shareBox').hidden = false;
     $('#shareBox').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
@@ -424,7 +427,7 @@
   $('#plCc').addEventListener('change', () => plCheck());
 
   // Cloud data cache: private entries by date, public results by quiz code. Refreshed at most every 10 seconds.
-  const cache = { entries: {}, results: {} };
+  const cache = { entries: {}, results: {}, quizzes: {} };
   async function pull(kind, key, fetcher, rerender) {
     const c = cache[kind][key];
     if (c && (c.busy || Date.now() - c.at < 10000)) return;
@@ -581,6 +584,32 @@
       </article>`;
     }).join('');
   }
+  // ---------- Tab 5: Quizzes (Super Admin only) ----------
+  // Quizzes saved on Save and continue (from 25 Oct 2026), plus quizzes found only in results for earlier days (no saved link).
+  function renderQuizzes() {
+    const day = $('#date5').value || today(), box = $('#quiz5');
+    if (!CLOUD) { box.innerHTML = '<p class="small sub">Quizzes appear here once the quiz database is connected.</p>'; return; }
+    if (!GiazoCloud.signedIn()) { box.innerHTML = '<p class="small sub">Sign in on Player Details to see sellers\' quizzes.</p><div><button type="button" class="btn" data-tab="2">Go to Player Details</button></div>'; return; }
+    pull('quizzes', day, d => GiazoCloud.quizzesOn(d), () => { if (state.tab === 5) renderQuizzes(); });
+    pull('results', 'date:' + day, () => GiazoCloud.resultsOn(day), () => { if (state.tab === 5) renderQuizzes(); });
+    const q = cache.quizzes[day] || {}, r = cache.results['date:' + day] || {};
+    if (!q.at || !r.at) { box.innerHTML = '<p class="small sub">Loading quizzes…</p>'; return; }
+    if (q.err && q.err !== 'signin') { box.innerHTML = '<p class="msg bad">Couldn\'t load quizzes. Check your connection and try again.</p>'; return; }
+    const byCode = {};
+    (q.rows || []).forEach(x => { byCode[x.code] = Object.assign({ players: 0, done: 0 }, x); });
+    (r.rows || []).forEach(x => {
+      const k = byCode[x.code] || (byCode[x.code] = { code: x.code, shop: x.shop, prod: x.prod, prize: x.prize, players: 0, done: 0 });
+      k.players++; if (x.status === 'done') k.done++;
+    });
+    const list = Object.values(byCode).sort((a, b) => b.players - a.players || String(a.shop).localeCompare(b.shop));
+    box.innerHTML = list.length ? `<p class="small sub" style="margin:0">${list.length} quiz${list.length === 1 ? '' : 'zes'} on ${niceDate(day)}.</p>` + list.map((x, i) => `<article class="quiz-row">
+        <h3>${esc(x.shop)} · ${esc(x.prod)}</h3>
+        <span class="small sub" style="margin:0">Code ${esc(x.code)}${x.phone ? ` · Seller ${esc(x.phone)}` : ''} · prize ${esc(x.prize)} · ${x.players} played, ${x.done} finished</span>
+        ${x.desc ? `<span class="small" style="margin:0">${esc(x.desc)}</span>` : ''}
+        ${x.url ? `<div class="linkrow"><input readonly id="qurl${i}" value="${esc(x.url)}" aria-label="Player link for ${esc(x.shop)}"><a class="btn ghost" href="${esc(x.url)}" target="_blank" rel="noopener">Open</a></div>`
+          : '<span class="small sub" style="margin:0">Player link not saved (posted before links were stored on 25 Oct).</span>'}
+      </article>`).join('') : `<p class="small sub">No quizzes were posted on ${niceDate(day)}.</p>`;
+  }
   function renderTab3() {
     $('#mini3').innerHTML = prizeMini();
     const me = play.me;
@@ -659,11 +688,11 @@
     $('#adminLogin').addEventListener('submit', async e => {
       e.preventDefault();
       $('#loginBtn').disabled = true; $('#loginMsg').className = 'msg'; $('#loginMsg').textContent = 'Signing in…';
-      try { await GiazoCloud.signIn($('#loginEmail').value.trim(), $('#loginPass').value); $('#loginPass').value = ''; $('#loginMsg').textContent = ''; cache.entries = {}; renderTab2(); }
+      try { await GiazoCloud.signIn($('#loginEmail').value.trim(), $('#loginPass').value); $('#loginPass').value = ''; $('#loginMsg').textContent = ''; cache.entries = {}; cache.quizzes = {}; renderTab2(); }
       catch (err) { $('#loginMsg').className = 'msg bad'; $('#loginMsg').textContent = /INVALID|PASSWORD|EMAIL_NOT_FOUND|CREDENTIAL/.test(err.message) ? 'That email and password don\'t match an admin account.' : 'Couldn\'t sign in. Check your connection and try again.'; }
       $('#loginBtn').disabled = false;
     });
-    $('#signOut').addEventListener('click', () => { GiazoCloud.signOut(); cache.entries = {}; renderTab2(); });
+    $('#signOut').addEventListener('click', () => { GiazoCloud.signOut(); cache.entries = {}; cache.quizzes = {}; renderTab2(); });
   }
   $('#date2').max = today(); $('#date2').value = today();
   $('#date3').max = dayStr(-1); $('#date3').value = dayStr(-1);
@@ -672,6 +701,11 @@
   $('#date3').addEventListener('change', renderLeaderboard);
   $('#date4').min = RESULTS_FROM; $('#date4').max = dayStr(-1) < RESULTS_FROM ? RESULTS_FROM : dayStr(-1); $('#date4').value = $('#date4').max;
   $('#date4').addEventListener('change', renderResults);
+  if ($('#date5')) {
+    $('#date5').min = RESULTS_FROM; $('#date5').max = today(); $('#date5').value = today();
+    $('#date5').addEventListener('change', renderQuizzes);
+    $('#today5').addEventListener('click', () => { $('#date5').value = today(); renderQuizzes(); });
+  }
   if (PLAYER) (async () => {
     // New short links arrive as player.html#DES_3210_231026.z...; older long links as player.html#o=...
     try {

@@ -15,6 +15,9 @@ The prize details travel inside the Player page link, so there is no server yet.
 ## Results tab
 Tab 4 **Results** is open to everyone (Super Admin, Seller and Player) with no login. Pick a date from 24 Oct 2026, when the database started, up to yesterday. Each quiz played that day shows its winner and ranking, with emails masked as `x*****@giazonest.com`. The Player page shows only its own seller's quiz; the console shows every quiz. When Super Admin is signed in (on Player Details), the console's Results also show each player's name, email and phone with the last 3 digits as ♥♥♥. Today's results appear after 00:00:00.
 
+## Quizzes tab (admin only)
+Tab 5 **Quizzes** appears on the console only. Sign in as Super Admin on Player Details, open Quizzes and pick a date (from 24 Oct 2026). It lists every seller's quiz that day: code, seller phone, prize, how many played and finished, the description and the player link. Links are saved to the `quizzes` collection when a seller clicks Save and continue (from 25 Oct 2026); earlier days show the quiz without a link. Needs the `quizzes` block in firestore.rules published.
+
 ## Flow
 - Tabs open in order: Player Details unlocks after the seller saves Seller's Details, and Quiz unlocks after a player starts. Both steps ask "Are you sure you want to continue?" first.
 - Tab 3 shows only the wheel while playing. Once a buyer starts, they stay on Tab 3 until the next day, when they see the previous day's results.

@@ -3,6 +3,7 @@
 //   entries/{id}  private player rows (name, email, phone, score). Readable only by signed-in admins (see firestore.rules).
 //   results/{id}  public rows for the leaderboard (masked email, score, time). Same id as the entry.
 //   locks/{id}    one per phone number per quiz per day, so a phone can't enter twice.
+//   quizzes/{code} each seller's quiz and player link, saved on Save and continue. Admin-only read.
 // With no config in firebase-config.js, GiazoCloud.on is false and the app keeps its example data.
 (() => {
   const cfg = window.GIAZO_FIREBASE || {};
@@ -85,5 +86,9 @@
     resultsFor: code => query('results', 'code', code),
     // Public: every result on a date.
     resultsOn: date => query('results', 'date', date),
+    // A seller's quiz (one per seller per day, keyed by its code). Saving again the same day updates it.
+    saveQuiz: q => call(`${DB}/quizzes/${encodeURIComponent(q.code)}?${KEY}`, { method: 'PATCH', body: JSON.stringify({ fields: toFields(q) }) }),
+    // Private: every quiz posted on a date (signed-in admin only).
+    async quizzesOn(date) { const t = await token(); if (!t) { const e = new Error('signin'); e.code = 'signin'; throw e; } return query('quizzes', 'date', date, t); },
   };
 })();

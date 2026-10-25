@@ -33,6 +33,14 @@ service cloud.firestore {
         && request.resource.data.masked is string;
       allow update: if finishing();
     }
+    // Each seller's quiz and player link. Sellers (no login) save it; only the admin can list them.
+    match /quizzes/{code} {
+      allow read: if isAdmin();
+      allow create, update: if request.resource.data.keys().hasOnly(['code', 'date', 'shop', 'phone', 'prod', 'desc', 'prize', 'url'])
+        && request.resource.data.code == code && request.resource.data.date is string && request.resource.data.date.size() == 10
+        && request.resource.data.url is string && request.resource.data.url.size() < 4000
+        && request.resource.data.desc is string && request.resource.data.desc.size() <= 600;
+    }
     // One per phone number per quiz per day. Never readable.
     match /locks/{id} {
       allow create: if request.resource.data.keys().hasOnly(['at']);

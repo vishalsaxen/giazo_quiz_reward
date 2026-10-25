@@ -142,6 +142,7 @@ input[type=range]{padding:0;border:0;background:transparent;accent-color:var(--b
 .roles button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
 .rolebar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:.82rem;color:var(--muted)}
 .tabs.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.tabs.five{grid-template-columns:repeat(5,minmax(0,1fr))}
 
 /* Tab 2 */
 .notice a{color:var(--brand);overflow-wrap:anywhere}
@@ -221,3 +222,6 @@ td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
 @media (max-width:640px){.tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.tabs.three{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .res-quiz{display:grid;gap:10px;border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--surface)}
 .res-quiz h3{margin:0;font:700 1.05rem var(--display)}
+.quiz-row{display:grid;gap:6px;border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--surface)}
+.quiz-row h3{margin:0;font:700 1.05rem var(--display)}
+.quiz-row .linkrow input{font-size:.85rem}

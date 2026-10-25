@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="app.css?v=20261025b">
+<link rel="stylesheet" href="app.css?v=20261025c">
 
 </head>
 <body>
@@ -32,6 +32,7 @@
     <button class="tab" role="tab" id="tab-2" aria-controls="panel-2" aria-selected="false"><i>2</i><span>Player Details<small>Today's entry form</small></span></button>
     <button class="tab" role="tab" id="tab-3" aria-controls="panel-3" aria-selected="false"><i>3</i><span>Quiz<small>Spin the wheel, public results</small></span></button>
     <button class="tab" role="tab" id="tab-4" aria-controls="panel-4" aria-selected="false"><i>4</i><span>Results<small>Winners by date, open to all</small></span></button>
+    <button class="tab" role="tab" id="tab-5" aria-controls="panel-5" aria-selected="false" hidden><i>5</i><span>Quizzes<small>All sellers, admin only</small></span></button>
   </nav>
 
   <!-- Tab 1: Seller's Details -->
@@ -288,6 +289,13 @@
     <div id="res4" style="display:grid;gap:16px"></div>
   </section>
 
+  <!-- Tab 5: Quizzes (Super Admin only) -->
+  <section id="panel-5" role="tabpanel" aria-labelledby="tab-5" hidden class="panel" style="display:grid;gap:14px">
+    <div><h1>Sellers' quizzes</h1><p class="sub" style="margin:0">Every quiz sellers posted on a date, with its player link and how many played. Only you can see this.</p></div>
+    <div class="datebar"><label for="date5">Date</label><input type="date" id="date5" min="2026-10-24"><button class="btn ghost" type="button" id="today5">Today</button></div>
+    <div id="quiz5" style="display:grid;gap:12px"></div>
+  </section>
+
   <section id="panel-0" class="panel" hidden>
     <h1>Today's quiz isn't open yet</h1>
     <p class="sub" style="margin:0">The seller hasn't published today's prize. Check back soon.</p>
@@ -302,10 +310,10 @@
   </form>
 </dialog>
 
-<script src="firebase-config.js?v=20261025b"></script>
-<script src="cloud.js?v=20261025b"></script>
-<script src="questions.js?v=20261025b"></script>
-<script src="app.js?v=20261025b"></script>
+<script src="firebase-config.js?v=20261025c"></script>
+<script src="cloud.js?v=20261025c"></script>
+<script src="questions.js?v=20261025c"></script>
+<script src="app.js?v=20261025c"></script>
 
 
 </body>

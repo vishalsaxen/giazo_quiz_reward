@@ -228,13 +228,18 @@
       $(fieldFor[bad]).focus();
       return;
     }
-    if (!await askConfirm(`Buyers will see "${$('#pname').value.trim()}" from ${$('#shop').value.trim()} as today's prize. A Player page with Player Details and the Quiz will be created for you to share.`)) return;
+    if (!await askConfirm(`Buyers will see "${$('#pname').value.trim()}" from ${$('#shop').value.trim()} as today's prize. Each seller can post one quiz per day, so check the details first. A Player page with Player Details and the Quiz will be created for you to share.`)) return;
+    $('#saveBtn').disabled = true; $('#formMsg').className = 'msg'; $('#formMsg').textContent = 'Saving…';
+    const r = await makePlayerLink();
+    $('#saveBtn').disabled = false;
+    if (r === 'error') { $('#formMsg').className = 'msg bad'; $('#formMsg').textContent = 'Couldn\'t save the quiz. Check your connection and try again.'; return; }
     state.saved = state.published = true;
-    $('#formMsg').className = 'msg ok';
-    $('#formMsg').textContent = `Saved. Buyers will see "${$('#pname').value.trim()}" from ${$('#shop').value.trim()} as the winner's prize.`;
+    $('#formMsg').className = r === 'existing' ? 'msg bad' : 'msg ok';
+    $('#formMsg').textContent = r === 'existing' ? 'You have already posted today\'s quiz. Each seller can post one quiz per day; you can post a new one after 00:00:00. Your link for today is below.'
+      : `Saved. Buyers will see "${$('#pname').value.trim()}" from ${$('#shop').value.trim()} as the winner's prize.`;
     $('#tab-1').classList.add('done');
     refreshTabs();
-    await makePlayerLink();
+    if (CLOUD) claimMyShop();
   });
   $('#resetBtn').addEventListener('click', () => {
     ['#shop', '#phone', '#pname', '#desc', '#mrp', '#winPrice', '#pct'].forEach(s => $(s).value = '');
@@ -249,20 +254,21 @@
   const quizCode = () => codeOf($('#shop').value, digits(), today());
   async function makePlayerLink() {
     // Shortest link: .../giazo_quiz_reward/DES_3210_231026 (404.html sends it to player.html#DES_3210_231026, which loads
-    // the prize details saved in the quizzes collection). If saving fails, fall back to the link that carries the details itself.
+    // the prize details saved in the quizzes collection). One quiz per seller per day: a second Save shows the first quiz's link.
+    // Returns 'saved', 'existing' or 'error'.
     const o = readForm(), code = quizCode(), packed = await packShort(o);
     const base = new URL('./', location.href).href.split('#')[0].split('?')[0];
-    let url = base + 'player.html#' + code + '.' + packed;
+    let url = base + 'player.html#' + code + '.' + packed, res = 'saved';
     if (CLOUD) {
-      claimMyShop();
-      const short = base + code;
-      // Super Admin also finds every seller's quiz and link by date here (Quizzes tab).
-      try { await GiazoCloud.saveQuiz({ code, date: today(), shop: o.shop, phone: o.phone, prod: o.pname, desc: o.desc, prize: prizeShort(o), url: short, data: packed }); url = short; }
-      catch (_) { GiazoCloud.saveQuiz({ code, date: today(), shop: o.shop, phone: o.phone, prod: o.pname, desc: o.desc, prize: prizeShort(o), url }).catch(() => {}); }
+      try {
+        const r = await GiazoCloud.postQuiz({ code, date: today(), shop: o.shop, phone: o.phone, prod: o.pname, desc: o.desc, prize: prizeShort(o), url: base + code, data: packed });
+        url = base + r.code; if (r.existing) res = 'existing';
+      } catch (e) { if (e.status !== 403) return 'error'; } // 403: latest Firestore rules not published yet, so keep the long link
     }
     $('#shareUrl').value = url; $('#openLink').href = url;
     $('#shareBox').hidden = false;
     $('#shareBox').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    return res;
   }
   $('#copyLink').addEventListener('click', () => {
     const b = $('#copyLink'), done = t => { b.textContent = t; setTimeout(() => { b.textContent = 'Copy link'; }, 1600); };

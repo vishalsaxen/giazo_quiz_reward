@@ -18,6 +18,9 @@ Tab 4 **Results** is open to everyone (Super Admin, Seller and Player) with no l
 ## Seller accounts and player details
 Players' full names, emails and phone numbers are private. On the console's Player Details tab, **Super Admin** (vishalsaxen@gmail.com or gizee@giazonest.com) signs in and sees every seller's players for any date, with a Seller column. A **seller** fills in Seller's Details, clicks Save and continue, then on Player Details enters an email and password and clicks **Create seller account** (or Sign in next time). That links their shop code (first 3 letters of the shop + last 4 phone digits, e.g. `GIZ_4383`) to their account in the `sellers` collection, and from then on they see only their own players, in Player Details and in Results. Players from earlier days show up too, because access is by shop code. The first account to claim a shop code keeps it; Super Admin can move it by editing or deleting the `sellers` document in the Firebase console.
 
+## One quiz per seller per day
+A seller (by phone number) can post one quiz per day. The first Save and continue creates `days/{phone digits}_{date}` naming that quiz; a second Save the same day shows the first quiz's link instead. Super Admin can clear a day by deleting that document in the Firebase console.
+
 ## Short player link
 When a seller clicks Save and continue, the prize details are saved in the `quizzes` collection and the link to share is just `https://vishalsaxen.github.io/giazo_quiz_reward/GIZ_4383_251026` (404.html forwards it to `player.html#GIZ_4383_251026`, which loads the details). If saving fails, the console falls back to the longer link that carries the details itself. Older links keep working.
 

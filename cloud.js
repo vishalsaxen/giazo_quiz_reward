@@ -4,6 +4,7 @@
 //   results/{id}  public rows for the leaderboard (masked email, score, time). Same id as the entry.
 //   locks/{id}    one per phone number per quiz per day, so a phone can't enter twice.
 //   sellers/{prefix} a seller account's claim on its shop prefix (DES_3210). The seller can then read entries for that prefix.
+//   days/{phone}_{date} one per seller per day, naming that day's quiz code.
 //   quizzes/{code} each seller's quiz and player link, saved on Save and continue. Admin-only read.
 // With no config in firebase-config.js, GiazoCloud.on is false and the app keeps its example data.
 (() => {
@@ -106,8 +107,20 @@
     resultsFor: code => query('results', 'code', code),
     // Public: every result on a date.
     resultsOn: date => query('results', 'date', date),
-    // A seller's quiz (one per seller per day, keyed by its code). Saving again the same day updates it.
-    saveQuiz: q => call(`${DB}/quizzes/${encodeURIComponent(q.code)}?${KEY}`, { method: 'PATCH', body: JSON.stringify({ fields: toFields(q) }) }),
+    // Post a seller's quiz: one per seller (phone number) per day. Returns { code } of the day's quiz;
+    // existing: true means the seller had already posted today and nothing new was saved.
+    async postQuiz(q) {
+      const pkey = `${String(q.phone).replace(/\D/g, '')}_${q.date}`;
+      try { await call(`${DB}/days?documentId=${pkey}&${KEY}`, { method: 'POST', body: JSON.stringify({ fields: toFields({ code: q.code, date: q.date }) }) }); }
+      catch (e) {
+        if (e.status !== 409) throw e;
+        const d = fromDoc(await call(`${DB}/days/${pkey}?${KEY}`));
+        return { code: d.code, existing: true };
+      }
+      try { await call(`${DB}/quizzes?documentId=${encodeURIComponent(q.code)}&${KEY}`, { method: 'POST', body: JSON.stringify({ fields: toFields(Object.assign({ pkey }, q)) }) }); }
+      catch (e) { if (e.status === 409) return { code: q.code, existing: true }; throw e; }
+      return { code: q.code, existing: false };
+    },
     // Public: one quiz by its code (the short player link reads its prize details from here).
     getQuiz: async code => fromDoc(await call(`${DB}/quizzes/${encodeURIComponent(code)}?${KEY}`)),
     // Private: every quiz posted on a date (signed-in admin only).

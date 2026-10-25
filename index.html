@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="app.css?v=20261025c">
+<link rel="stylesheet" href="app.css?v=20261025d">
 
 </head>
 <body>
@@ -221,17 +221,17 @@
         <h2>Entries and scores</h2><span class="private">Private: seller and admin only</span>
       </header>
       <form id="adminLogin" class="login" hidden>
-        <p class="small sub" style="margin:0">Sign in with your admin account to see today's players and scores.</p>
+        <p class="small sub" style="margin:0">Sign in to see players' names, emails and phone numbers. Super Admin sees every seller's players; a seller sees only their own. New seller? Enter your email and a password and click Create seller account.</p>
         <div class="field"><label for="loginEmail">Email</label><input id="loginEmail" type="email" autocomplete="username" required></div>
         <div class="field"><label for="loginPass">Password</label><input id="loginPass" type="password" autocomplete="current-password" required></div>
         <p class="msg" id="loginMsg" role="status"></p>
-        <div class="actions"><button class="btn" type="submit" id="loginBtn">Sign in</button></div>
+        <div class="actions"><button class="btn" type="submit" id="loginBtn">Sign in</button><button class="btn ghost" type="submit" id="signupBtn">Create seller account</button></div>
       </form>
       <div id="entriesBody" style="display:grid;gap:12px">
       <p class="small sub" id="adminWho" hidden style="margin:0">Signed in as <b id="adminWhoEmail"></b> · <button type="button" class="linkbtn" id="signOut">Sign out</button></p>
       <div class="datebar"><label for="date2">Date</label><input type="date" id="date2"><button class="btn ghost" type="button" id="today2">Today</button></div>
       <div class="tbl"><table>
-        <thead><tr><th class="num">#</th><th>Name</th><th>Email</th><th>Phone</th><th>Status</th><th class="num">Score</th><th class="num">Time</th></tr></thead>
+        <thead><tr><th class="num">#</th><th>Name</th><th>Email</th><th>Phone</th><th id="thSeller" hidden>Seller</th><th>Status</th><th class="num">Score</th><th class="num">Time</th></tr></thead>
         <tbody id="entries"></tbody>
       </table></div>
       <p class="small sub" id="entriesNote" style="margin:0"></p>
@@ -310,10 +310,10 @@
   </form>
 </dialog>
 
-<script src="firebase-config.js?v=20261025c"></script>
-<script src="cloud.js?v=20261025c"></script>
-<script src="questions.js?v=20261025c"></script>
-<script src="app.js?v=20261025c"></script>
+<script src="firebase-config.js?v=20261025d"></script>
+<script src="cloud.js?v=20261025d"></script>
+<script src="questions.js?v=20261025d"></script>
+<script src="app.js?v=20261025d"></script>
 
 
 </body>

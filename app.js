@@ -31,7 +31,7 @@
   // Tabs open in order: Tab 2 after the seller saves Tab 1, Tab 3 after a player starts in Tab 2.
   // A buyer who has entered today's quiz stays on Tab 3 until the date changes.
   const buyerLocked = () => state.role === 'buyer' && !!play.me;
-  const tabOpen = i => i >= 4 ? true : i === 3 ? !!(play.me || play.pastMe) : buyerLocked() ? false : i === 1 || (i === 2 && state.published);
+  const tabOpen = i => i >= 4 ? true : i === 3 ? !!(play.me || play.pastMe) : buyerLocked() ? false : i === 1 || (i === 2 && (state.published || (CLOUD && GiazoCloud.signedIn())));
   const LOCK_TIP = { 2: 'Opens after Seller\'s Details are saved', 3: 'Opens after you start the quiz in Player Details' };
   const lockTip = i => buyerLocked() && i !== 3 ? 'You have entered today\'s quiz. A new quiz opens after 00:00:00.' : LOCK_TIP[i];
   function refreshTabs() {
@@ -252,6 +252,7 @@
     const url = new URL('player.html', location.href).href.split('#')[0] + '#' + quizCode() + '.' + await packShort(readForm());
     $('#shareUrl').value = url; $('#openLink').href = url;
     // Save the quiz so Super Admin can find every seller's quiz and link by date (Quizzes tab).
+    if (CLOUD) claimMyShop();
     if (CLOUD) { const o = readForm(); GiazoCloud.saveQuiz({ code: quizCode(), date: today(), shop: o.shop, phone: o.phone, prod: o.pname, desc: o.desc, prize: prizeShort(o), url }).catch(() => {}); }
     $('#shareBox').hidden = false;
     $('#shareBox').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -436,6 +437,46 @@
     catch (e) { cache[kind][key] = Object.assign(cache[kind][key], { busy: false, at: Date.now(), err: e.code || 'net' }); if (e.code === 'signin') GiazoCloud.signOut(); }
     rerender();
   }
+  // ---------- accounts ----------
+  // Super Admin (email listed in cloud.js and firestore.rules) sees every player. A seller account sees players of
+  // the shops it has claimed: a shop is claimed (DES_3210) when the signed-in seller saves Seller's Details.
+  const acct = { shops: null, msg: '' };
+  const isAdmin = () => CLOUD && GiazoCloud.signedIn() && GiazoCloud.isAdmin();
+  const isSellerAcct = () => CLOUD && GiazoCloud.signedIn() && !GiazoCloud.isAdmin();
+  const prefixOf = code => code.split('_').slice(0, 2).join('_');
+  const dayCode = day => codeOf('', '', day).split('_')[2];
+  async function loadShops() {
+    if (!isSellerAcct()) { acct.shops = null; return; }
+    try { acct.shops = await GiazoCloud.myShops(); } catch (_) { acct.shops = acct.shops || []; }
+    rerenderOpen();
+  }
+  async function claimMyShop() {
+    if (!isSellerAcct() || !state.published) return;
+    const o = offer(), prefix = prefixOf(codeOf(o.shop, o.phone, today()));
+    if (o.shop === SAMPLE.shop && String(o.phone).replace(/\D/g, '').endsWith(SAMPLE.phone.replace(/\D/g, ''))) return; // the example shop
+    try { await GiazoCloud.claimShop(prefix, today()); acct.msg = ''; }
+    catch (e) { acct.msg = e.code === 'taken' ? `The shop code ${prefix} is linked to another seller account. Ask Super Admin to move it to you.` : ''; }
+    cache.entries = {}; await loadShops();
+  }
+  function applyAccount() {
+    const b = document.querySelector('.roles button[data-role="admin"]');
+    if (b) b.hidden = isSellerAcct();
+    if (isSellerAcct() && state.role === 'admin') setRole('seller');
+  }
+  const rerenderOpen = () => { refreshTabs(); if (state.tab === 2) renderTab2(); if (state.tab === 4) renderResults(); if (state.tab === 5) renderQuizzes(); };
+  // Names, emails and phones for a date: every entry for the admin, the seller's own shops for a seller account.
+  function privateEntries(day, rerender) {
+    if (isAdmin()) { pull('entries', day, d => GiazoCloud.entriesOn(d), rerender); const c = cache.entries[day] || {}; return { rows: c.rows || [], ready: !!c.at, err: c.err }; }
+    if (!isSellerAcct() || !acct.shops) return { rows: [], ready: false };
+    const out = { rows: [], ready: true };
+    acct.shops.forEach(sh => {
+      const code = sh + '_' + dayCode(day);
+      pull('entries', 'code:' + code, () => GiazoCloud.entriesFor(code), rerender);
+      const c = cache.entries['code:' + code] || {};
+      out.rows.push(...(c.rows || [])); out.ready = out.ready && !!c.at; out.err = out.err || c.err;
+    });
+    return out;
+  }
   function renderTab2() {
     $('#mini2').innerHTML = prizeMini();
     const priv = state.role !== 'buyer';
@@ -445,17 +486,19 @@
     const login = $('#adminLogin'), needLogin = CLOUD && priv && !GiazoCloud.signedIn();
     if (login) { login.hidden = !needLogin; $('#entriesBody').hidden = needLogin; $('#adminWho').hidden = !(CLOUD && GiazoCloud.signedIn()); }
     if (needLogin) return;
-    if (CLOUD && GiazoCloud.signedIn()) $('#adminWhoEmail').textContent = GiazoCloud.adminEmail();
-    if (CLOUD && priv) pull('entries', day, d => GiazoCloud.entriesOn(d), () => { if (state.tab === 2) renderTab2(); });
-    const all = CLOUD ? ((cache.entries[day] || {}).rows || []).map(e => Object.assign({}, e, { secs: e.secs ?? null, score: e.score ?? null }))
+    if (CLOUD && GiazoCloud.signedIn()) $('#adminWhoEmail').textContent = GiazoCloud.adminEmail() + (isAdmin() ? ' (Super Admin, all sellers)' : acct.shops && acct.shops.length ? ` (seller: ${acct.shops.join(', ')})` : ' (seller)');
+    const pe = CLOUD && priv ? privateEntries(day, () => { if (state.tab === 2) renderTab2(); }) : { rows: [] };
+    const all = CLOUD ? pe.rows.map(e => Object.assign({}, e, { secs: e.secs ?? null, score: e.score ?? null }))
       : isToday ? play.entries : (play.history[day] || {}).entries || [];
     const done = rankList(all), rows = [...done, ...all.filter(e => e.status !== 'done')];
+    const showSeller = isAdmin(); if ($('#thSeller')) $('#thSeller').hidden = !showSeller;
     $('#entries').innerHTML = rows.length ? rows.map(e => { const r = done.indexOf(e) + 1; return `<tr><td class="num">${r || '–'}</td><td style="white-space:nowrap">${esc(e.name)}${r === 1 ? ` <span class="pill done">${isToday ? 'Leading' : 'Winner'}</span>` : ''}</td><td>${esc(e.email)}</td><td style="white-space:nowrap">${esc(e.phone)}</td>
-      <td>${e.status === 'done' ? '<span class="pill done">Finished</span>' : `<span class="pill wait">${isToday ? 'Playing' : 'Didn\'t finish'}</span>`}</td>
+      ${showSeller ? `<td>${esc(e.shop || '')}<br><span class="small sub" style="margin:0">${esc(e.prod || '')}</span></td>` : ''}<td>${e.status === 'done' ? '<span class="pill done">Finished</span>' : `<span class="pill wait">${isToday ? 'Playing' : 'Didn\'t finish'}</span>`}</td>
       <td class="num">${e.score ?? '–'}</td><td class="num">${e.secs != null ? mmss(e.secs) : '–'}</td></tr>`; }).join('')
-      : `<tr><td colspan="7" class="small">${isToday ? 'No entries yet today.' : 'No quiz was played on this date.'}</td></tr>`;
-    const playingNow = all.filter(e => e.status === 'playing').length, err = CLOUD && (cache.entries[day] || {}).err;
-    $('#entriesNote').textContent = (err ? 'Couldn\'t load the latest entries. Check your connection; retrying. ' : '') +
+      : `<tr><td colspan="${showSeller ? 8 : 7}" class="small">${isToday ? 'No entries yet today.' : 'No quiz was played on this date.'}</td></tr>`;
+    const playingNow = all.filter(e => e.status === 'playing').length, err = CLOUD && pe.err;
+    const noShop = isSellerAcct() && acct.shops && !acct.shops.length && !acct.msg ? 'Save your Seller\'s Details once while signed in to link your shop to this account. ' : '';
+    $('#entriesNote').textContent = acct.msg + (acct.msg ? ' ' : '') + noShop + (err ? 'Couldn\'t load the latest entries. Check your connection; retrying. ' : '') +
       `${rows.length} entr${rows.length === 1 ? 'y' : 'ies'} on ${niceDate(day)}` + (isToday ? `, ${playingNow} playing now.` : '.') +
       (isToday ? (CLOUD ? ' Updates every 15 seconds. Results go public in the Quiz tab after 00:00:00.' : ' Scores update live. The form clears at 00:00:00 and results go public in the Quiz tab.') : '');
   }
@@ -560,15 +603,14 @@
     const c = cache.results['date:' + day] || {};
     if (!c.at) { box.innerHTML = '<p class="small sub">Loading results…</p>'; return; }
     if (c.err) { box.innerHTML = '<p class="msg bad">Couldn\'t load results. Check your connection and try again.</p>'; return; }
-    // Signed-in admin on the console also gets names, emails and phones (last 3 digits as hearts) from the private entries.
+    // On the console, a signed-in Super Admin gets every player's full name, email and phone; a signed-in seller gets their own shops' players.
     const admin = !PLAYER && GiazoCloud.signedIn();
-    if (admin) pull('entries', day, d => GiazoCloud.entriesOn(d), () => { if (state.tab === 4) renderResults(); });
-    const priv = {}; if (admin) ((cache.entries[day] || {}).rows || []).forEach(e => { priv[e.id] = e; });
-    const heartPhone = p => { const m = String(p || '').match(/^(\+\d+)\s*(.*)$/), d = (m ? m[2] : p || '').replace(/\D/g, ''); return d ? `${m ? m[1] + ' ' : ''}${d.slice(0, -3)}♥♥♥` : 'Phone *****'; };
-    const who = e => priv[e.id] ? { name: esc(priv[e.id].name), line: `${esc(priv[e.id].email)} · ${esc(heartPhone(priv[e.id].phone))}` } : { name: '*****', line: `${esc(e.masked)} · Phone *****` };
-    const shopOf = code => code.split('_').slice(0, 2).join('_');
+    const priv = {}; if (admin) privateEntries(day, () => { if (state.tab === 4) renderResults(); }).rows.forEach(e => { priv[e.id] = e; });
+    const who = e => priv[e.id] ? { name: esc(priv[e.id].name), line: `${esc(priv[e.id].email)} · ${esc(priv[e.id].phone)}` } : { name: '*****', line: `${esc(e.masked)} · Phone *****` };
+    const shopOf = prefixOf;
     let rows = c.rows;
     if (PLAYER) rows = rows.filter(r => shopOf(r.code) === shopOf(codeForDay(today())));
+    else if (isSellerAcct()) rows = rows.filter(r => (acct.shops || []).includes(shopOf(r.code)));
     else if (state.role === 'seller') rows = rows.filter(r => shopOf(r.code) === shopOf(codeOf(offer().shop, offer().phone, day)));
     const groups = {};
     rows.forEach(r => { const k = shopOf(r.code) + '|' + r.prod; (groups[k] = groups[k] || []).push(r); });
@@ -589,6 +631,7 @@
   function renderQuizzes() {
     const day = $('#date5').value || today(), box = $('#quiz5');
     if (!CLOUD) { box.innerHTML = '<p class="small sub">Quizzes appear here once the quiz database is connected.</p>'; return; }
+    if (isSellerAcct()) { box.innerHTML = '<p class="small sub">The Quizzes list is for Super Admin only.</p>'; return; }
     if (!GiazoCloud.signedIn()) { box.innerHTML = '<p class="small sub">Sign in on Player Details to see sellers\' quizzes.</p><div><button type="button" class="btn" data-tab="2">Go to Player Details</button></div>'; return; }
     pull('quizzes', day, d => GiazoCloud.quizzesOn(d), () => { if (state.tab === 5) renderQuizzes(); });
     pull('results', 'date:' + day, () => GiazoCloud.resultsOn(day), () => { if (state.tab === 5) renderQuizzes(); });
@@ -688,11 +731,22 @@
     $('#adminLogin').addEventListener('submit', async e => {
       e.preventDefault();
       $('#loginBtn').disabled = true; $('#loginMsg').className = 'msg'; $('#loginMsg').textContent = 'Signing in…';
-      try { await GiazoCloud.signIn($('#loginEmail').value.trim(), $('#loginPass').value); $('#loginPass').value = ''; $('#loginMsg').textContent = ''; cache.entries = {}; cache.quizzes = {}; renderTab2(); }
-      catch (err) { $('#loginMsg').className = 'msg bad'; $('#loginMsg').textContent = /INVALID|PASSWORD|EMAIL_NOT_FOUND|CREDENTIAL/.test(err.message) ? 'That email and password don\'t match an admin account.' : 'Couldn\'t sign in. Check your connection and try again.'; }
+      const signUp = e.submitter && e.submitter.id === 'signupBtn';
+      try { await GiazoCloud.signIn($('#loginEmail').value.trim(), $('#loginPass').value, signUp); $('#loginPass').value = ''; $('#loginMsg').textContent = ''; await afterSignIn(); }
+      catch (err) {
+        $('#loginMsg').className = 'msg bad';
+        $('#loginMsg').textContent = /EMAIL_EXISTS/.test(err.message) ? 'That email already has an account. Use Sign in.'
+          : /WEAK_PASSWORD/.test(err.message) ? 'Use a password of at least 6 characters.'
+          : /INVALID|PASSWORD|EMAIL_NOT_FOUND|CREDENTIAL/.test(err.message) ? 'That email and password don\'t match an account.' : 'Couldn\'t sign in. Check your connection and try again.';
+      }
       $('#loginBtn').disabled = false;
     });
-    $('#signOut').addEventListener('click', () => { GiazoCloud.signOut(); cache.entries = {}; cache.quizzes = {}; renderTab2(); });
+    $('#signOut').addEventListener('click', () => { GiazoCloud.signOut(); cache.entries = {}; cache.quizzes = {}; acct.shops = null; acct.msg = ''; applyAccount(); rerenderOpen(); });
+  }
+  async function afterSignIn() {
+    cache.entries = {}; cache.quizzes = {}; applyAccount();
+    if (isSellerAcct()) { await claimMyShop(); await loadShops(); }
+    rerenderOpen();
   }
   $('#date2').max = today(); $('#date2').value = today();
   $('#date3').max = dayStr(-1); $('#date3').value = dayStr(-1);
@@ -723,5 +777,6 @@
   })(); else {
     initSellerForm();
     setRole('admin');
+    if (CLOUD && GiazoCloud.signedIn()) { applyAccount(); loadShops(); }
   }
 })();

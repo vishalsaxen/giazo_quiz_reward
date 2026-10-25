@@ -1,10 +1,16 @@
 rules_version = '2';
 // Paste into Firebase console › Firestore Database › Rules, then Publish.
-// Players (no login) can enter once and save one final score. Only the admin emails below can read names, emails and phones.
+// Players (no login) can enter once and save one final score. Names, emails and phones are readable only by the admin, and by each signed-in seller for their own shop.
 service cloud.firestore {
   match /databases/{database}/documents {
     function isAdmin() {
       return request.auth != null && request.auth.token.email in ['vishalsaxen@gmail.com'];
+    }
+    // Seller who claimed this quiz code's shop prefix (first 3 letters of shop + last 4 phone digits, e.g. DES_3210).
+    function ownsSeller(code) {
+      let parts = code.split('_');
+      return request.auth != null && parts.size() == 3
+        && get(/databases/$(database)/documents/sellers/$(parts[0] + '_' + parts[1])).data.owner == request.auth.uid;
     }
     function common(d) {
       return d.code is string && d.code.size() <= 40 && d.date is string && d.date.size() == 10
@@ -19,7 +25,7 @@ service cloud.firestore {
     }
 
     match /entries/{id} {
-      allow read: if isAdmin();
+      allow read: if isAdmin() || ownsSeller(resource.data.code);
       allow create: if common(request.resource.data)
         && request.resource.data.keys().hasOnly(['code', 'date', 'status', 'shop', 'prod', 'prize', 'name', 'email', 'phone'])
         && request.resource.data.email is string && request.resource.data.phone is string && request.resource.data.name is string;
@@ -40,6 +46,14 @@ service cloud.firestore {
         && request.resource.data.code == code && request.resource.data.date is string && request.resource.data.date.size() == 10
         && request.resource.data.url is string && request.resource.data.url.size() < 4000
         && request.resource.data.desc is string && request.resource.data.desc.size() <= 600;
+    }
+    // Seller accounts: a signed-in seller claims their shop prefix once. Only the admin can change or remove a claim.
+    match /sellers/{prefix} {
+      allow read: if request.auth != null && (isAdmin() || resource.data.owner == request.auth.uid);
+      allow create: if request.auth != null && prefix.matches('[A-Z]{3}_[0-9]{4}')
+        && request.resource.data.keys().hasOnly(['owner', 'email', 'at'])
+        && request.resource.data.owner == request.auth.uid && request.resource.data.email == request.auth.token.email;
+      allow update, delete: if isAdmin();
     }
     // One per phone number per quiz per day. Never readable.
     match /locks/{id} {

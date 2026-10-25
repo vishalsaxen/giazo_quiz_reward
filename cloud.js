@@ -108,6 +108,8 @@
     resultsOn: date => query('results', 'date', date),
     // A seller's quiz (one per seller per day, keyed by its code). Saving again the same day updates it.
     saveQuiz: q => call(`${DB}/quizzes/${encodeURIComponent(q.code)}?${KEY}`, { method: 'PATCH', body: JSON.stringify({ fields: toFields(q) }) }),
+    // Public: one quiz by its code (the short player link reads its prize details from here).
+    getQuiz: async code => fromDoc(await call(`${DB}/quizzes/${encodeURIComponent(code)}?${KEY}`)),
     // Private: every quiz posted on a date (signed-in admin only).
     async quizzesOn(date) { return query('quizzes', 'date', date, await needToken()); },
   };

@@ -39,10 +39,13 @@ service cloud.firestore {
         && request.resource.data.masked is string;
       allow update: if finishing();
     }
-    // Each seller's quiz and player link. Sellers (no login) save it; only the admin can list them.
+    // Each seller's quiz and player link. Sellers (no login) save it. Anyone with a quiz code can open that one quiz
+    // (the short player link loads its prize details from here); only the admin can list them.
     match /quizzes/{code} {
-      allow read: if isAdmin();
-      allow create, update: if request.resource.data.keys().hasOnly(['code', 'date', 'shop', 'phone', 'prod', 'desc', 'prize', 'url'])
+      allow get: if true;
+      allow list: if isAdmin();
+      allow create, update: if request.resource.data.keys().hasOnly(['code', 'date', 'shop', 'phone', 'prod', 'desc', 'prize', 'url', 'data'])
+        && (!('data' in request.resource.data) || (request.resource.data.data is string && request.resource.data.data.size() < 3000))
         && request.resource.data.code == code && request.resource.data.date is string && request.resource.data.date.size() == 10
         && request.resource.data.url is string && request.resource.data.url.size() < 4000
         && request.resource.data.desc is string && request.resource.data.desc.size() <= 600;

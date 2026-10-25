@@ -18,6 +18,9 @@ Tab 4 **Results** is open to everyone (Super Admin, Seller and Player) with no l
 ## Seller accounts and player details
 Players' full names, emails and phone numbers are private. On the console's Player Details tab, **Super Admin** (vishalsaxen@gmail.com) signs in and sees every seller's players for any date, with a Seller column. A **seller** fills in Seller's Details, clicks Save and continue, then on Player Details enters an email and password and clicks **Create seller account** (or Sign in next time). That links their shop code (first 3 letters of the shop + last 4 phone digits, e.g. `GIZ_4383`) to their account in the `sellers` collection, and from then on they see only their own players, in Player Details and in Results. Players from earlier days show up too, because access is by shop code. The first account to claim a shop code keeps it; Super Admin can move it by editing or deleting the `sellers` document in the Firebase console.
 
+## Short player link
+When a seller clicks Save and continue, the prize details are saved in the `quizzes` collection and the link to share is just `https://vishalsaxen.github.io/giazo_quiz_reward/GIZ_4383_251026` (404.html forwards it to `player.html#GIZ_4383_251026`, which loads the details). If saving fails, the console falls back to the longer link that carries the details itself. Older links keep working.
+
 ## Quizzes tab (admin only)
 Tab 5 **Quizzes** appears on the console only. Sign in as Super Admin on Player Details, open Quizzes and pick a date (from 24 Oct 2026). It lists every seller's quiz that day: code, seller phone, prize, how many played and finished, the description and the player link. Links are saved to the `quizzes` collection when a seller clicks Save and continue (from 25 Oct 2026); earlier days show the quiz without a link. Needs the `quizzes` block in firestore.rules published.
 

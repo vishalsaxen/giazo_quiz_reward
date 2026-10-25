@@ -248,12 +248,19 @@
   // ---------- player.html link ----------
   const quizCode = () => codeOf($('#shop').value, digits(), today());
   async function makePlayerLink() {
-    // Short link: player.html#DES_3210_231026.<packed prize details>. No photo, so it stays short.
-    const url = new URL('player.html', location.href).href.split('#')[0] + '#' + quizCode() + '.' + await packShort(readForm());
+    // Shortest link: .../giazo_quiz_reward/DES_3210_231026 (404.html sends it to player.html#DES_3210_231026, which loads
+    // the prize details saved in the quizzes collection). If saving fails, fall back to the link that carries the details itself.
+    const o = readForm(), code = quizCode(), packed = await packShort(o);
+    const base = new URL('./', location.href).href.split('#')[0].split('?')[0];
+    let url = base + 'player.html#' + code + '.' + packed;
+    if (CLOUD) {
+      claimMyShop();
+      const short = base + code;
+      // Super Admin also finds every seller's quiz and link by date here (Quizzes tab).
+      try { await GiazoCloud.saveQuiz({ code, date: today(), shop: o.shop, phone: o.phone, prod: o.pname, desc: o.desc, prize: prizeShort(o), url: short, data: packed }); url = short; }
+      catch (_) { GiazoCloud.saveQuiz({ code, date: today(), shop: o.shop, phone: o.phone, prod: o.pname, desc: o.desc, prize: prizeShort(o), url }).catch(() => {}); }
+    }
     $('#shareUrl').value = url; $('#openLink').href = url;
-    // Save the quiz so Super Admin can find every seller's quiz and link by date (Quizzes tab).
-    if (CLOUD) claimMyShop();
-    if (CLOUD) { const o = readForm(); GiazoCloud.saveQuiz({ code: quizCode(), date: today(), shop: o.shop, phone: o.phone, prod: o.pname, desc: o.desc, prize: prizeShort(o), url }).catch(() => {}); }
     $('#shareBox').hidden = false;
     $('#shareBox').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
@@ -605,7 +612,8 @@
     if (c.err) { box.innerHTML = '<p class="msg bad">Couldn\'t load results. Check your connection and try again.</p>'; return; }
     // On the console, a signed-in Super Admin gets every player's full name, email and phone; a signed-in seller gets their own shops' players.
     const admin = !PLAYER && GiazoCloud.signedIn();
-    const priv = {}; if (admin) privateEntries(day, () => { if (state.tab === 4) renderResults(); }).rows.forEach(e => { priv[e.id] = e; });
+    const pe = admin ? privateEntries(day, () => { if (state.tab === 4) renderResults(); }) : { rows: [] };
+    const priv = {}; pe.rows.forEach(e => { priv[e.id] = e; });
     const who = e => priv[e.id] ? { name: esc(priv[e.id].name), line: `${esc(priv[e.id].email)} · ${esc(priv[e.id].phone)}` } : { name: '*****', line: `${esc(e.masked)} · Phone *****` };
     const shopOf = prefixOf;
     let rows = c.rows;
@@ -616,7 +624,12 @@
     rows.forEach(r => { const k = shopOf(r.code) + '|' + r.prod; (groups[k] = groups[k] || []).push(r); });
     const list = Object.values(groups);
     if (!list.length) { box.innerHTML = `<p class="small sub">No quiz was played on ${niceDate(day)}.</p>`; return; }
-    const hint = !PLAYER && !admin ? '<p class="small sub" style="margin:0">Sign in on Player Details to see names, emails and phone numbers here.</p>' : '';
+    // Console, signed out: a sign-in form right here, so Super Admin and sellers can see full player details.
+    const hint = PLAYER ? '' : !admin ? `<form class="login" id="resLogin"><p class="small sub" style="margin:0">Super Admin or seller? Sign in to see players' full names, emails and phone numbers.</p>
+        <div class="field"><label for="resEmail">Email</label><input id="resEmail" type="email" autocomplete="username" required></div>
+        <div class="field"><label for="resPass">Password</label><input id="resPass" type="password" autocomplete="current-password" required></div>
+        <p class="msg" id="resMsg" role="status"></p><div class="actions"><button class="btn" type="submit">Sign in</button></div></form>`
+      : `<p class="small sub" style="margin:0">Signed in as <b>${esc(GiazoCloud.adminEmail())}</b>${isAdmin() ? ' (Super Admin): full details for every seller.' : ': full details for your shop.'}${pe.err ? ' <span class="msg bad">Couldn\'t load player details. Publish the latest Firestore rules, then reload.</span>' : ''}</p>`;
     box.innerHTML = hint + list.map(g => {
       const lb = rankList(g), top = lb[0], h = g[0];
       return `<article class="res-quiz"><h3>${esc(h.shop)} · ${esc(h.prod)}</h3>
@@ -743,6 +756,13 @@
     });
     $('#signOut').addEventListener('click', () => { GiazoCloud.signOut(); cache.entries = {}; cache.quizzes = {}; acct.shops = null; acct.msg = ''; applyAccount(); rerenderOpen(); });
   }
+  document.addEventListener('submit', async e => {
+    if (e.target.id !== 'resLogin') return;
+    e.preventDefault();
+    $('#resMsg').className = 'msg'; $('#resMsg').textContent = 'Signing in…';
+    try { await GiazoCloud.signIn($('#resEmail').value.trim(), $('#resPass').value); await afterSignIn(); }
+    catch (err) { $('#resMsg').className = 'msg bad'; $('#resMsg').textContent = /INVALID|PASSWORD|EMAIL_NOT_FOUND|CREDENTIAL/.test(err.message) ? 'That email and password don\'t match an account.' : 'Couldn\'t sign in. Check your connection and try again.'; }
+  });
   async function afterSignIn() {
     cache.entries = {}; cache.quizzes = {}; applyAccount();
     if (isSellerAcct()) { await claimMyShop(); await loadShops(); }
@@ -763,8 +783,10 @@
   if (PLAYER) (async () => {
     // New short links arrive as player.html#DES_3210_231026.z...; older long links as player.html#o=...
     try {
-      const s = location.hash.match(/^#([A-Z]{3}_\d{4}_\d{6})\.([zj][A-Za-z0-9_-]+)$/), m = location.hash.match(/^#o=([A-Za-z0-9_-]+)/);
-      linkOffer = s ? await unpackShort(s[2]) : m ? unpackOffer(m[1]) : null;
+      // Shortest links (player.html#DES_3210_231026) load the prize details saved with the quiz.
+      const s = location.hash.match(/^#([A-Z]{3}_\d{4}_\d{6})(?:\.([zj][A-Za-z0-9_-]+))?$/), m = location.hash.match(/^#o=([A-Za-z0-9_-]+)/);
+      const packed = s && (s[2] || (CLOUD ? (await GiazoCloud.getQuiz(s[1])).data : null));
+      linkOffer = packed ? await unpackShort(packed) : m ? unpackOffer(m[1]) : null;
       linkCode = s ? s[1] : null;
     } catch (_) { linkOffer = null; }
     if (linkOffer && !(linkOffer.shop && linkOffer.pname)) linkOffer = null;

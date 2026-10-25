@@ -557,6 +557,12 @@
     const c = cache.results['date:' + day] || {};
     if (!c.at) { box.innerHTML = '<p class="small sub">Loading results…</p>'; return; }
     if (c.err) { box.innerHTML = '<p class="msg bad">Couldn\'t load results. Check your connection and try again.</p>'; return; }
+    // Signed-in admin on the console also gets names, emails and phones (last 3 digits as hearts) from the private entries.
+    const admin = !PLAYER && GiazoCloud.signedIn();
+    if (admin) pull('entries', day, d => GiazoCloud.entriesOn(d), () => { if (state.tab === 4) renderResults(); });
+    const priv = {}; if (admin) ((cache.entries[day] || {}).rows || []).forEach(e => { priv[e.id] = e; });
+    const heartPhone = p => { const m = String(p || '').match(/^(\+\d+)\s*(.*)$/), d = (m ? m[2] : p || '').replace(/\D/g, ''); return d ? `${m ? m[1] + ' ' : ''}${d.slice(0, -3)}♥♥♥` : 'Phone *****'; };
+    const who = e => priv[e.id] ? { name: esc(priv[e.id].name), line: `${esc(priv[e.id].email)} · ${esc(heartPhone(priv[e.id].phone))}` } : { name: '*****', line: `${esc(e.masked)} · Phone *****` };
     const shopOf = code => code.split('_').slice(0, 2).join('_');
     let rows = c.rows;
     if (PLAYER) rows = rows.filter(r => shopOf(r.code) === shopOf(codeForDay(today())));
@@ -565,12 +571,13 @@
     rows.forEach(r => { const k = shopOf(r.code) + '|' + r.prod; (groups[k] = groups[k] || []).push(r); });
     const list = Object.values(groups);
     if (!list.length) { box.innerHTML = `<p class="small sub">No quiz was played on ${niceDate(day)}.</p>`; return; }
-    box.innerHTML = list.map(g => {
+    const hint = !PLAYER && !admin ? '<p class="small sub" style="margin:0">Sign in on Player Details to see names, emails and phone numbers here.</p>' : '';
+    box.innerHTML = hint + list.map(g => {
       const lb = rankList(g), top = lb[0], h = g[0];
       return `<article class="res-quiz"><h3>${esc(h.shop)} · ${esc(h.prod)}</h3>
         <span class="small sub" style="margin:0">${lb.length} finished · ${g.length} entered · prize ${esc(h.prize)}</span>
-        ${top ? `<div class="winner"><span class="tag">Winner · ${niceDate(day)}</span><b>${esc(top.masked)}</b><span class="small sub" style="margin:0">${top.score} pts in ${mmss(top.secs)}. Wins ${esc(h.prod)} ${esc(h.prize)} from ${esc(h.shop)}.</span></div>` : ''}
-        <ol class="lb">${lb.map((e, i) => `<li class="${i === 0 ? 'first' : ''}"><span class="rank">${i + 1}</span><span class="who"><b>*****</b><span>${esc(e.masked)} · Phone *****</span></span><span class="sc"><b>${e.score} pts</b>${mmss(e.secs)}</span></li>`).join('') || '<li><span></span><span class="who"><span>Nobody finished this quiz.</span></span><span></span></li>'}</ol>
+        ${top ? `<div class="winner"><span class="tag">Winner · ${niceDate(day)}</span><b>${priv[top.id] ? `${who(top).name} · ${who(top).line}` : esc(top.masked)}</b><span class="small sub" style="margin:0">${top.score} pts in ${mmss(top.secs)}. Wins ${esc(h.prod)} ${esc(h.prize)} from ${esc(h.shop)}.</span></div>` : ''}
+        <ol class="lb">${lb.map((e, i) => `<li class="${i === 0 ? 'first' : ''}"><span class="rank">${i + 1}</span><span class="who"><b>${who(e).name}</b><span>${who(e).line}</span></span><span class="sc"><b>${e.score} pts</b>${mmss(e.secs)}</span></li>`).join('') || '<li><span></span><span class="who"><span>Nobody finished this quiz.</span></span><span></span></li>'}</ol>
       </article>`;
     }).join('');
   }

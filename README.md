@@ -12,6 +12,9 @@ A just-for-fun daily quiz for GiaZoNest. A seller offers a product discount, pla
 
 The prize details travel inside the Player page link, so there is no server yet. The link starts with a short quiz code, the first 3 letters of the shop name, the last 4 digits of the seller's mobile and the date as DDMMYY, for example `player.html#DES_3210_231026.z...`. The text after `#` holds the shop, product name, description and prize in compressed form. Photos are not included, to keep the link short, so buyers see the GiaZoNest logo in place of the product photo. `404.html` also opens the earlier `giazo_quiz_reward/DES_3210_231026#...` form. Older `player.html#o=...` links still work. Opening `player.html` without that part shows "This quiz link isn't complete". Scores are kept in the browser that played, so a buyer's score does not reach the seller's console until the app has a backend.
 
+## Results tab
+Tab 4 **Results** is open to everyone (Super Admin, Seller and Player) with no login. Pick a date from 24 Oct 2026, when the database started, up to yesterday. Each quiz played that day shows its winner and ranking, with emails masked as `x*****@giazonest.com`. The Player page shows only its own seller's quiz; the console shows every quiz. Today's results appear after 00:00:00.
+
 ## Flow
 - Tabs open in order: Player Details unlocks after the seller saves Seller's Details, and Quiz unlocks after a player starts. Both steps ask "Are you sure you want to continue?" first.
 - Tab 3 shows only the wheel while playing. Once a buyer starts, they stay on Tab 3 until the next day, when they see the previous day's results.

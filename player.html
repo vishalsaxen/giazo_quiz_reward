@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="app.css?v=20261023e">
+<link rel="stylesheet" href="app.css?v=20261025a">
 
 </head>
 <body data-page="player">
@@ -25,6 +25,7 @@
   <nav class="tabs" role="tablist" aria-label="Setup steps">
     <button class="tab" role="tab" id="tab-2" aria-controls="panel-2" aria-selected="false"><i>2</i><span>Player Details<small>Today's entry form</small></span></button>
     <button class="tab" role="tab" id="tab-3" aria-controls="panel-3" aria-selected="false"><i>3</i><span>Quiz<small>Spin the wheel, public results</small></span></button>
+    <button class="tab" role="tab" id="tab-4" aria-controls="panel-4" aria-selected="false"><i>4</i><span>Results<small>Winners by date, open to all</small></span></button>
   </nav>
 
   <!-- Tab 2: Player Details -->
@@ -128,6 +129,15 @@
     </div>
   </section>
 
+  <!-- Tab 4: Results (public, no login) -->
+  <section id="panel-4" role="tabpanel" aria-labelledby="tab-4" hidden class="panel" style="display:grid;gap:14px">
+    <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline">
+      <div><h1>Results</h1><p class="sub" style="margin:0">Each day's results open here after 00:00:00. Names and phone numbers stay hidden; emails show as x*****@giazonest.com.</p></div>
+    </div>
+    <div class="datebar"><label for="date4">Quiz date</label><input type="date" id="date4" min="2026-10-24"></div>
+    <div id="res4" style="display:grid;gap:16px"></div>
+  </section>
+
   <section id="panel-0" class="panel" hidden>
     <h1>This quiz link isn't complete</h1>
     <p class="sub" style="margin:0">Ask the seller to send the Player page link again. It should end with #o= followed by a long code.</p>
@@ -142,10 +152,10 @@
   </form>
 </dialog>
 
-<script src="firebase-config.js?v=20261023e"></script>
-<script src="cloud.js?v=20261023e"></script>
-<script src="questions.js?v=20261023e"></script>
-<script src="app.js?v=20261023e"></script>
+<script src="firebase-config.js?v=20261025a"></script>
+<script src="cloud.js?v=20261025a"></script>
+<script src="questions.js?v=20261025a"></script>
+<script src="app.js?v=20261025a"></script>
 
 
 </body>

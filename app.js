@@ -20,7 +20,7 @@
     mrp: '1499', pct: 20, img: SAMPLE_IMG, imgName: 'rainbow-stacker.jpg (example)',
   };
   const state = { img: null, imgName: '', saved: false, published: false, role: PLAYER ? 'buyer' : 'admin' };
-  const TABS_FOR = { admin: [1, 2, 3], seller: [1, 2, 3], buyer: [2, 3] };
+  const TABS_FOR = { admin: [1, 2, 3, 4], seller: [1, 2, 3, 4], buyer: [2, 3, 4] };
   const ROLE_NOTE = {
     admin: 'Previewing as Super Admin: sees all 3 tabs and every player entry.',
     seller: 'Previewing as Seller: sets up Tab 1 and can check scores for any date in Tab 2.',
@@ -31,7 +31,7 @@
   // Tabs open in order: Tab 2 after the seller saves Tab 1, Tab 3 after a player starts in Tab 2.
   // A buyer who has entered today's quiz stays on Tab 3 until the date changes.
   const buyerLocked = () => state.role === 'buyer' && !!play.me;
-  const tabOpen = i => i === 3 ? !!(play.me || play.pastMe) : buyerLocked() ? false : i === 1 || (i === 2 && state.published);
+  const tabOpen = i => i === 4 ? true : i === 3 ? !!(play.me || play.pastMe) : buyerLocked() ? false : i === 1 || (i === 2 && state.published);
   const LOCK_TIP = { 2: 'Opens after Seller\'s Details are saved', 3: 'Opens after you start the quiz in Player Details' };
   const lockTip = i => buyerLocked() && i !== 3 ? 'You have entered today\'s quiz. A new quiz opens after 00:00:00.' : LOCK_TIP[i];
   function refreshTabs() {
@@ -44,12 +44,15 @@
   }
   function showTab(n) {
     const allowed = TABS_FOR[state.role].filter(tabOpen);
-    if (!allowed.includes(n)) n = allowed.length ? allowed[allowed.length - 1] : 0;
+    // Results (Tab 4) is always open, so fall back to the furthest open step tab instead.
+    const steps = allowed.filter(i => i !== 4);
+    if (!allowed.includes(n)) n = steps.length ? steps[steps.length - 1] : allowed.length ? allowed[0] : 0;
     state.tab = n;
     refreshTabs();
     if (n === 2) renderTab2();
     if (n === 3) renderTab3();
-    [0, 1, 2, 3].forEach(i => {
+    if (n === 4) renderResults();
+    [0, 1, 2, 3, 4].forEach(i => {
       if (i && $('#tab-' + i)) $('#tab-' + i).setAttribute('aria-selected', String(i === n));
       if ($('#panel-' + i)) $('#panel-' + i).hidden = i !== n;
     });
@@ -61,14 +64,14 @@
     d.addEventListener('close', () => res(d.returnValue === 'yes'), { once: true });
     d.showModal();
   });
-  [1, 2, 3].forEach(i => $('#tab-' + i) && $('#tab-' + i).addEventListener('click', () => showTab(i)));
+  [1, 2, 3, 4].forEach(i => $('#tab-' + i) && $('#tab-' + i).addEventListener('click', () => showTab(i)));
   function setRole(r) {
     state.role = r;
     document.querySelectorAll('.roles button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.role === r)));
-    [1, 2, 3].forEach(i => { if ($('#tab-' + i)) $('#tab-' + i).hidden = !TABS_FOR[r].includes(i); });
-    $('.tabs').classList.toggle('two', TABS_FOR[r].length === 2);
+    [1, 2, 3, 4].forEach(i => { if ($('#tab-' + i)) $('#tab-' + i).hidden = !TABS_FOR[r].includes(i); });
+    $('.tabs').classList.toggle('three', TABS_FOR[r].length === 3);
     if ($('#roleNote')) $('#roleNote').textContent = ROLE_NOTE[r];
-    showTab(TABS_FOR[r].includes(state.tab) ? state.tab : TABS_FOR[r][TABS_FOR[r].length - 1]);
+    showTab(TABS_FOR[r].includes(state.tab) ? state.tab : TABS_FOR[r].filter(i => i !== 4).pop());
   }
   document.querySelectorAll('.roles button').forEach(b => b.addEventListener('click', () => setRole(b.dataset.role)));
   document.addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) showTab(+b.dataset.tab); });
@@ -543,6 +546,34 @@
       <span class="sc"><b>${e.score} pts</b>${mmss(e.secs)}</span></li>`).join('')
       : `<li><span></span><span class="who"><span>No results for ${niceDate(day)}.</span></span><span></span></li>`;
   }
+  // ---------- Tab 4: Results (public) ----------
+  // One date at a time, from 24 Oct 2026 (when the database started) up to yesterday. Today's results stay hidden until 00:00:00.
+  // The Player page shows its own seller's quiz; the console shows every quiz played that day.
+  const RESULTS_FROM = '2026-10-24';
+  function renderResults() {
+    const day = $('#date4').value || dayStr(-1), box = $('#res4');
+    if (!CLOUD) { box.innerHTML = '<p class="small sub">Results appear here once the quiz database is connected.</p>'; return; }
+    pull('results', 'date:' + day, () => GiazoCloud.resultsOn(day), () => { if (state.tab === 4) renderResults(); });
+    const c = cache.results['date:' + day] || {};
+    if (!c.at) { box.innerHTML = '<p class="small sub">Loading results…</p>'; return; }
+    if (c.err) { box.innerHTML = '<p class="msg bad">Couldn\'t load results. Check your connection and try again.</p>'; return; }
+    const shopOf = code => code.split('_').slice(0, 2).join('_');
+    let rows = c.rows;
+    if (PLAYER) rows = rows.filter(r => shopOf(r.code) === shopOf(codeForDay(today())));
+    else if (state.role === 'seller') rows = rows.filter(r => shopOf(r.code) === shopOf(codeOf(offer().shop, offer().phone, day)));
+    const groups = {};
+    rows.forEach(r => { const k = shopOf(r.code) + '|' + r.prod; (groups[k] = groups[k] || []).push(r); });
+    const list = Object.values(groups);
+    if (!list.length) { box.innerHTML = `<p class="small sub">No quiz was played on ${niceDate(day)}.</p>`; return; }
+    box.innerHTML = list.map(g => {
+      const lb = rankList(g), top = lb[0], h = g[0];
+      return `<article class="res-quiz"><h3>${esc(h.shop)} · ${esc(h.prod)}</h3>
+        <span class="small sub" style="margin:0">${lb.length} finished · ${g.length} entered · prize ${esc(h.prize)}</span>
+        ${top ? `<div class="winner"><span class="tag">Winner · ${niceDate(day)}</span><b>${esc(top.masked)}</b><span class="small sub" style="margin:0">${top.score} pts in ${mmss(top.secs)}. Wins ${esc(h.prod)} ${esc(h.prize)} from ${esc(h.shop)}.</span></div>` : ''}
+        <ol class="lb">${lb.map((e, i) => `<li class="${i === 0 ? 'first' : ''}"><span class="rank">${i + 1}</span><span class="who"><b>*****</b><span>${esc(e.masked)} · Phone *****</span></span><span class="sc"><b>${e.score} pts</b>${mmss(e.secs)}</span></li>`).join('') || '<li><span></span><span class="who"><span>Nobody finished this quiz.</span></span><span></span></li>'}</ol>
+      </article>`;
+    }).join('');
+  }
   function renderTab3() {
     $('#mini3').innerHTML = prizeMini();
     const me = play.me;
@@ -632,6 +663,8 @@
   $('#date2').addEventListener('change', renderTab2);
   $('#today2').addEventListener('click', () => { $('#date2').value = today(); renderTab2(); });
   $('#date3').addEventListener('change', renderLeaderboard);
+  $('#date4').min = RESULTS_FROM; $('#date4').max = dayStr(-1) < RESULTS_FROM ? RESULTS_FROM : dayStr(-1); $('#date4').value = $('#date4').max;
+  $('#date4').addEventListener('change', renderResults);
   if (PLAYER) (async () => {
     // New short links arrive as player.html#DES_3210_231026.z...; older long links as player.html#o=...
     try {

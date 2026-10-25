@@ -83,5 +83,7 @@
     async entriesOn(date) { const t = await token(); if (!t) { const e = new Error('signin'); e.code = 'signin'; throw e; } return query('entries', 'date', date, t); },
     // Public: results for one quiz code.
     resultsFor: code => query('results', 'code', code),
+    // Public: every result on a date.
+    resultsOn: date => query('results', 'date', date),
   };
 })();

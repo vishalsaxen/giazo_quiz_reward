@@ -33,7 +33,7 @@ header.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .brand span{color:var(--muted);font-size:.85rem}
 
 /* Tabs */
-.tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:6px}
+.tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:6px}
 .tab{border:0;background:transparent;color:var(--muted);font:600 .92rem var(--body);padding:10px 12px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:10px;text-align:left;min-width:0}
 .tab i{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font:700 .8rem var(--display);font-style:normal;background:var(--accent-soft);color:var(--ink)}
 .tab span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -141,7 +141,7 @@ input[type=range]{padding:0;border:0;background:transparent;accent-color:var(--b
 .roles button{border:0;background:transparent;color:var(--muted);font:600 .88rem var(--body);padding:8px 14px;border-radius:999px;cursor:pointer}
 .roles button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
 .rolebar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:.82rem;color:var(--muted)}
-.tabs.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.tabs.three{grid-template-columns:repeat(3,minmax(0,1fr))}
 
 /* Tab 2 */
 .notice a{color:var(--brand);overflow-wrap:anywhere}
@@ -218,3 +218,6 @@ td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
 .share a.btn{text-decoration:none;display:inline-flex;align-items:center}
 .login{display:grid;gap:12px}
 #entriesBody[hidden]{display:none}
+@media (max-width:640px){.tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.tabs.three{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.res-quiz{display:grid;gap:10px;border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--surface)}
+.res-quiz h3{margin:0;font:700 1.05rem var(--display)}
